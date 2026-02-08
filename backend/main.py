@@ -33,7 +33,7 @@ try:
     PYWHATKIT_AVAILABLE = True
 except ImportError:
     PYWHATKIT_AVAILABLE = False
-    print("⚠️ pywhatkit not installed. WhatsApp notifications disabled.")
+    print("WARNING: pywhatkit not installed. WhatsApp notifications disabled.")
 
 # Fault-specific recommendations
 FAULT_RECOMMENDATIONS = {
@@ -72,7 +72,10 @@ class SensorData(BaseModel):
     current: float
     temperature: float
     light_intensity: float
-    efficiency: Optional[float] = None  # Can be calculated if not provided
+    humidity: Optional[float] = 50.0
+    thermistor_temp: Optional[float] = 25.0
+    efficiency: Optional[float] = None
+    relay_status: bool = False
 
 class PredictionResponse(BaseModel):
     fault_type: str
@@ -106,6 +109,7 @@ class GatewayRecord(BaseModel):
     thermistorTemp: float
     voltage: float
     current: float
+    relayStatus: bool = False
     valid: bool
     gateway_timestamp_ms: int
 
@@ -125,6 +129,7 @@ class AppState:
         self.simulation_fault_type = 0  # 0=Normal, 1=Open, 2=Partial, 3=Short, 4=Dust
         self.connected_clients: List[WebSocket] = []
         self.is_monitoring = False
+        self.simulated_relay_states: Dict[int, bool] = {1: False, 2: False}
         
         # WhatsApp notification tracking
         self.whatsapp_enabled = False
@@ -210,7 +215,10 @@ def generate_simulated_data(fault_type: int = 0) -> dict:
         "current": round(current, 2),
         "temperature": round(temperature, 2),
         "light_intensity": round(light, 2),
+        "humidity": round(random.uniform(30, 80), 1),
+        "thermistor_temp": round(temperature + random.uniform(-2, 2), 2),
         "efficiency": round(efficiency, 2),
+        "relay_status": False
     }
 
 # =============================================================================
@@ -453,7 +461,10 @@ async def receive_gateway_data(records: List[GatewayRecord]):
             current=record.current,
             temperature=record.dhtTemp,
             light_intensity=float(record.ldrValue),
-            efficiency=efficiency
+            humidity=record.humidity,
+            thermistor_temp=record.thermistorTemp,
+            efficiency=efficiency,
+            relay_status=record.relayStatus
         )
         
         # Run Prediction
@@ -575,6 +586,15 @@ async def queue_command(request: CommandRequest):
     with state.commands_lock:
         state.pending_commands[station_id] = request.command
     
+    # If in simulator mode, apply command immediately to simulated state
+    if state.connection_mode == "simulator":
+        if request.command == "ACTIVATE_RELAY":
+            state.simulated_relay_states[request.station_id] = True
+        elif request.command == "DEACTIVATE_RELAY":
+            state.simulated_relay_states[request.station_id] = False
+        elif request.command == "TOGGLE_RELAY":
+            state.simulated_relay_states[request.station_id] = not state.simulated_relay_states.get(request.station_id, False)
+
     print(f"🕹️ Command Queued for Station {station_id}: {request.command}")
     return {"status": "success", "message": "Command queued", "station_id": station_id}
 
@@ -690,31 +710,35 @@ async def websocket_endpoint(websocket: WebSocket):
             # Send data if monitoring
             if state.is_monitoring:
                 if state.connection_mode == "simulator":
-                    sensor_data = generate_simulated_data(state.simulation_fault_type)
+                    # Broadcast for both Station 1 and Station 2
+                    for station_id in [1, 2]:
+                        sensor_data = generate_simulated_data(state.simulation_fault_type)
+                        # Use simulated relay state
+                        sensor_data["relay_status"] = state.simulated_relay_states.get(station_id, False)
+                        
+                        prediction = predict_fault(SensorData(**sensor_data))
+                        
+                        # Send WhatsApp if fault detected (limited to last notified logic)
+                        if prediction.is_fault:
+                            await send_whatsapp_notification(prediction.fault_type, sensor_data, is_simulator=True)
+                        elif not prediction.is_fault:
+                            state.last_notified_fault = None
+                        
+                        await websocket.send_json({
+                            "type": "data",
+                            "sender_id": station_id,
+                            "sensor_data": sensor_data,
+                            "prediction": prediction.model_dump()
+                        })
                 elif state.connection_mode == "serial" and state.serial_connection:
                     sensor_data = read_serial_data()
-                else:
-                    sensor_data = generate_simulated_data(state.simulation_fault_type)
-                
-                prediction = predict_fault(SensorData(**sensor_data))
-                
-                # Send WhatsApp notification if fault detected
-                is_simulator = (state.connection_mode == "simulator")
-                if prediction.is_fault:
-                    await send_whatsapp_notification(
-                        prediction.fault_type, 
-                        sensor_data, 
-                        is_simulator=is_simulator
-                    )
-                elif not prediction.is_fault:
-                    # Reset when back to normal
-                    state.last_notified_fault = None
-                
-                await websocket.send_json({
-                    "type": "data",
-                    "sensor_data": sensor_data,
-                    "prediction": prediction.model_dump()
-                })
+                    prediction = predict_fault(SensorData(**sensor_data))
+                    await websocket.send_json({
+                        "type": "data",
+                        "sender_id": 1,
+                        "sensor_data": sensor_data,
+                        "prediction": prediction.model_dump()
+                    })
             
             await asyncio.sleep(0.5)  # 2 updates per second
             

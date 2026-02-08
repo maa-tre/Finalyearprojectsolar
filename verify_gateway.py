@@ -17,6 +17,7 @@ sender1_data = {
     "thermistorTemp": 25.0,
     "voltage": 19.5,
     "current": 5.2,
+    "relayStatus": True,
     "valid": True,
     "gateway_timestamp_ms": int(time.time() * 1000)
 }
@@ -30,6 +31,7 @@ sender2_data = {
     "thermistorTemp": 30.0,
     "voltage": 12.0,   # Low voltage
     "current": 3.0,
+    "relayStatus": False,
     "valid": True,
     "gateway_timestamp_ms": int(time.time() * 1000)
 }
@@ -41,6 +43,7 @@ def on_message(ws, message):
     if data.get("type") == "gateway_data":
         print(f"\n✅ WebSocket Received Data for Station {data.get('sender_id')}")
         print(f"   Prediction: {data.get('prediction', {}).get('fault_type')}")
+        print(f"   Relay Status: {'ON' if data.get('sensor_data', {}).get('relay_status') else 'OFF'}")
         
 def on_error(ws, error):
     print(f"❌ WebSocket Error: {error}")
