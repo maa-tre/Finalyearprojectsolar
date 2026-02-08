@@ -15,7 +15,10 @@ interface SensorData {
   current: number
   temperature: number
   light_intensity: number
+  humidity: number
+  thermistor_temp: number
   efficiency: number
+  relay_status: boolean
 }
 
 interface Prediction {
@@ -35,8 +38,11 @@ interface HistoryEntry {
   current: number
   temperature: number
   light: number
+  humidity: number
+  thermistor: number
   power: number
   efficiency: number
+  relay: boolean
   fault: string
 }
 
@@ -187,14 +193,12 @@ function ConnectionPanel({
   mode,
   setMode,
   isConnected,
-  onConnect,
   simulationFault,
   setSimulationFault
 }: {
   mode: string
   setMode: (m: string) => void
   isConnected: boolean
-  onConnect: () => void
   simulationFault: number
   setSimulationFault: (f: number) => void
 }) {
@@ -269,26 +273,18 @@ function ConnectionPanel({
 
       {mode === 'wifi' && (
         <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-400">ESP32 IP Address</label>
-            <input
-              type="text"
-              placeholder="192.168.1.100"
-              className="w-full mt-2 p-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500"
-            />
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2 mb-2">
+              <Radio className="w-4 h-4 text-purple-400" />
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Central Node MAC</label>
+            </div>
+            <div className="text-lg font-mono font-bold text-white tracking-widest">
+              88:57:21:8E:C2:BC
+            </div>
+            <p className="text-[10px] text-gray-500 mt-2">ESP-NOW protocol active on Channel 1</p>
           </div>
         </div>
       )}
-
-      <button
-        onClick={onConnect}
-        className={`w-full mt-6 p-4 rounded-xl font-semibold transition-all ${isConnected
-          ? 'bg-green-500/20 border border-green-500/50 text-green-400'
-          : 'bg-gradient-to-r from-solar-500 to-amber-500 text-dark-900 hover:shadow-lg hover:shadow-solar-500/30'
-          }`}
-      >
-        {isConnected ? '✓ Connected' : 'Connect'}
-      </button>
     </div>
   )
 }
@@ -362,11 +358,38 @@ export default function Home() {
   const [whatsappEnabled, setWhatsappEnabled] = useState(false)
   const [whatsappStatus, setWhatsappStatus] = useState<string>('')
 
-  // WebSocket connection
+  // Reset data when mode or monitoring changes
+  useEffect(() => {
+    if (!isMonitoring) {
+      setStationData({})
+      setAvailableStations(new Set([1]))
+    }
+  }, [connectionMode, isMonitoring])
+
+  // WebSocket connection and Stale Data Handling
   useEffect(() => {
     if (!isMonitoring) return
 
     const ws = new WebSocket('ws://localhost:8000/ws')
+
+    // Interval to check for stale data (Timeout: 5s)
+    const staleCheck = setInterval(() => {
+      setStationData(prev => {
+        const now = new Date().getTime()
+        const updatedState = { ...prev }
+        let changed = false
+
+        Object.keys(updatedState).forEach(id => {
+          const sId = parseInt(id)
+          const lastUpdate = updatedState[sId]?.lastUpdate?.getTime() || 0
+          if (now - lastUpdate > 5000 && updatedState[sId].sensorData !== null) {
+            updatedState[sId] = { ...updatedState[sId], sensorData: null, prediction: null }
+            changed = true
+          }
+        })
+        return changed ? updatedState : prev
+      })
+    }, 1000)
 
     ws.onopen = () => {
       console.log('WebSocket connected')
@@ -377,33 +400,28 @@ export default function Home() {
       const data = JSON.parse(event.data)
 
       // --- STRICT MODE FILTERING ---
-      // 1. If in Simulator Mode: ONLY accept 'data' (simulated)
-      // 2. If in WiFi/Real Mode: ONLY accept 'gateway_data' (real hardware)
-
       let targetStationId = 1
       let incomingSensorData = data.sensor_data
       let incomingPrediction = data.prediction
 
       if (connectionMode === 'simulator') {
-        if (data.type !== 'data') return // Ignore real data in sim mode
-        targetStationId = 1
+        if (data.type !== 'data') return
+        targetStationId = data.sender_id || 1
       }
       else if (connectionMode === 'wifi') {
-        if (data.type !== 'gateway_data') return // Ignore sim data in real mode
+        if (data.type !== 'gateway_data') return
         targetStationId = data.sender_id
       }
-      else {
-        return // Unknown mode
-      }
+      else return
 
-      // Update available stations
       setAvailableStations(prev => {
         const newSet = new Set(prev)
         if (!newSet.has(targetStationId)) newSet.add(targetStationId)
         return newSet
       })
 
-      // Update Station Data
+      setIsConnected(true)
+
       setStationData(prev => {
         const currentStationState = prev[targetStationId] || {
           sensorData: null,
@@ -419,8 +437,11 @@ export default function Home() {
           current: incomingSensorData.current,
           temperature: incomingSensorData.temperature,
           light: incomingSensorData.light_intensity,
+          humidity: incomingSensorData.humidity || 0,
+          thermistor: incomingSensorData.thermistor_temp || 0,
           power: incomingPrediction.power,
           efficiency: incomingPrediction.efficiency || incomingSensorData.efficiency || 0,
+          relay: incomingSensorData.relay_status || false,
           fault: incomingPrediction.fault_type
         }
 
@@ -440,14 +461,26 @@ export default function Home() {
       })
     }
 
-    ws.onclose = () => console.log('WebSocket disconnected')
-    ws.onerror = (err: Event) => console.error('WebSocket error:', err)
+    ws.onclose = () => {
+      console.log('WebSocket disconnected')
+      setIsMonitoring(false)
+      setIsConnected(false)
+    }
+
+    ws.onerror = () => {
+      console.error('WebSocket error')
+      setIsMonitoring(false)
+      setIsConnected(false)
+    }
 
     return () => {
-      ws.send(JSON.stringify({ command: 'stop' }))
+      clearInterval(staleCheck)
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ command: 'stop' }))
+      }
       ws.close()
     }
-  }, [isMonitoring])
+  }, [isMonitoring, connectionMode])
 
   // Update simulation fault type
   useEffect(() => {
@@ -457,10 +490,6 @@ export default function Home() {
       })
     }
   }, [simulationFault, connectionMode, isMonitoring])
-
-  const handleConnect = () => {
-    setIsConnected(true)
-  }
 
   // Configure WhatsApp notifications
   const configureWhatsApp = async () => {
@@ -587,8 +616,36 @@ export default function Home() {
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Gauges */}
           <div className="col-span-12 lg:col-span-8">
-            {/* Sensor Gauges */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {/* Environmental Sensor Gauges */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <Gauge
+                value={sensorData?.humidity || 0}
+                min={0} max={100}
+                label="Humidity"
+                unit="%"
+                color="#06b6d4"
+                icon={Sun}
+              />
+              <Gauge
+                value={sensorData?.temperature || 0}
+                min={0} max={100}
+                label="Air Temperature"
+                unit="°C"
+                color="#f59e0b"
+                icon={Thermometer}
+              />
+              <Gauge
+                value={sensorData?.thermistor_temp || 0}
+                min={0} max={100}
+                label="Case Temp"
+                unit="°C"
+                color="#ec4899"
+                icon={Thermometer}
+              />
+            </div>
+
+            {/* Electrical & Solar Gauges */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <Gauge
                 value={sensorData?.voltage || 0}
                 min={0} max={30}
@@ -604,14 +661,6 @@ export default function Home() {
                 unit="A"
                 color="#ef4444"
                 icon={Activity}
-              />
-              <Gauge
-                value={sensorData?.temperature || 0}
-                min={0} max={100}
-                label="Temperature"
-                unit="°C"
-                color="#f59e0b"
-                icon={Thermometer}
               />
               <Gauge
                 value={sensorData?.light_intensity || 0}
@@ -639,6 +688,8 @@ export default function Home() {
               <MiniChart data={history} dataKey="temperature" color="#f59e0b" title="Temperature (°C)" />
               <MiniChart data={history} dataKey="light" color="#22c55e" title="Light (lux)" />
               <MiniChart data={history} dataKey="efficiency" color="#8b5cf6" title="Efficiency (%)" />
+              <MiniChart data={history} dataKey="humidity" color="#06b6d4" title="Humidity (%)" />
+              <MiniChart data={history} dataKey="thermistor" color="#ec4899" title="Case Temperature (°C)" />
             </div>
 
             {/* Main Chart */}
@@ -678,10 +729,54 @@ export default function Home() {
               mode={connectionMode}
               setMode={setConnectionMode}
               isConnected={isConnected}
-              onConnect={handleConnect}
               simulationFault={simulationFault}
               setSimulationFault={setSimulationFault}
             />
+
+            {/* Relay Control Panel */}
+            <div className="glass-card p-6 overflow-hidden relative">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Zap className={`w-5 h-5 ${sensorData?.relay_status ? 'text-yellow-400' : 'text-gray-500'}`} />
+                  Relay Control
+                </h3>
+                <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${sensorData?.relay_status ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'
+                  }`}>
+                  {sensorData?.relay_status ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4 text-center">
+                <p className="text-xs text-gray-400 mb-1">Station {selectedStation} Relay State</p>
+                <div className={`text-2xl font-bold ${sensorData?.relay_status ? 'text-white' : 'text-gray-600'}`}>
+                  {sensorData?.relay_status ? 'POWER ON' : 'POWER OFF'}
+                </div>
+              </div>
+
+              <motion.button
+                onClick={() => {
+                  const cmd = sensorData?.relay_status ? 'DEACTIVATE_RELAY' : 'ACTIVATE_RELAY';
+                  fetch('http://localhost:8000/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ station_id: selectedStation, command: cmd })
+                  });
+                }}
+                className={`w-full p-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all ${sensorData?.relay_status
+                    ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20'
+                    : 'bg-green-500 text-dark-900 hover:bg-green-600 shadow-lg shadow-green-500/20'
+                  }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <RefreshCw className={`w-5 h-5 ${sensorData?.relay_status ? 'animate-spin-slow' : ''}`} />
+                {sensorData?.relay_status ? 'DEACTIVATE RELAY' : 'ACTIVATE RELAY'}
+              </motion.button>
+
+              <p className="text-[10px] text-gray-500 mt-4 text-center italic">
+                Commands are polled by the gateway every 5 seconds
+              </p>
+            </div>
 
             {/* Fault Distribution */}
             <div className="glass-card p-6">

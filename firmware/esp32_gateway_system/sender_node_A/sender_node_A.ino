@@ -1,10 +1,10 @@
 /*
- * Solar Panel Fault Detection - Sender Node Firmware
+ * Solar Panel Fault Detection - Sender Node A Firmware
  * 
  * Role: Reads sensors and sends data to the Central Gateway via ESP-NOW.
- * Hardware: ESP32 + Voltage Sensor + Current Sensor (ACS712) + DHT22 + LDR + Thermistor
+ * Hardware: ESP32 + Specialized Pin Configuration
  * 
- * Based on: updatednosenser.ino (The "Gold Standard" sender code)
+ * SENDER_ID: 2 (Station 2)
  */
 
 #include <esp_now.h>
@@ -16,7 +16,7 @@
 // --- SENDER CONFIGURATION (CHANGE FOR EACH SENDER) ---
 // This is the unique identifier for this specific sender node.
 // Change this to '2' for the second sender, '3' for the third, etc.
-const int SENDER_ID = 1; 
+const int SENDER_ID = 2; 
 
 // --- Wi-Fi & ESP-NOW Configuration ---
 // MAC Address of the Central Gateway (Receiver)
@@ -24,15 +24,14 @@ const int SENDER_ID = 1;
 uint8_t centralNodeAddress[] = {0x88, 0x57, 0x21, 0x8E, 0xC2, 0xBC}; 
 const uint8_t COMMON_WIFI_CHANNEL = 1;
 
-// --- Sensor Pin Definitions ---
-// Updated to match 'updatednosenser.ino'
-#define DHTPIN               22 
+// --- Sensor Pin Definitions (SENDER A SPECIFIC) ---
+#define DHTPIN               4 
 #define DHTTYPE              DHT22
-#define LDR_PIN              32
-#define THERMISTOR_PIN       33
-#define VOLTAGE_SENSOR_PIN   35
-#define CURRENT_SENSOR_PIN   34
-#define RELAY_PIN            13 // Active LOW Relay
+#define LDR_PIN              35
+#define THERMISTOR_PIN       34
+#define VOLTAGE_SENSOR_PIN   33
+#define CURRENT_SENSOR_PIN   32
+#define RELAY_PIN            2 // Active LOW Relay
 
 // --- Thermistor Constants ---
 const float THERMISTOR_NOMINAL_RESISTANCE      = 10000.0;
@@ -105,12 +104,12 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
 
     if (strcmp(received_cmd.command, "ACTIVATE_RELAY") == 0) {
         Serial.println("Activating relay...");
-        digitalWrite(RELAY_PIN, LOW); // Active LOW
-        Serial.printf("Relay pin %d set to LOW (activated)\n", RELAY_PIN);
+        digitalWrite(RELAY_PIN, HIGH); // On this sender it might be Active HIGH or user preference
+        Serial.printf("Relay pin %d set to HIGH (activated)\n", RELAY_PIN);
     } else if (strcmp(received_cmd.command, "DEACTIVATE_RELAY") == 0) {
         Serial.println("Deactivating relay...");
-        digitalWrite(RELAY_PIN, HIGH); // Off
-        Serial.printf("Relay pin %d set to HIGH (deactivated)\n", RELAY_PIN);
+        digitalWrite(RELAY_PIN, LOW); // Off
+        Serial.printf("Relay pin %d set to LOW (deactivated)\n", RELAY_PIN);
     } else if (strcmp(received_cmd.command, "TOGGLE_RELAY") == 0) {
         Serial.println("Toggling relay...");
         digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
@@ -125,12 +124,12 @@ void setup() {
     Serial.begin(115200);
     delay(100);
 
-    Serial.println("\n--- ESP32 Sensor Node (Sender) Starting ---");
+    Serial.println("\n--- ESP32 Sensor Node A (Sender 2) Starting ---");
     Serial.printf("This is Sender ID: %d\n", SENDER_ID); 
 
     // Initialize Relay Pin
     pinMode(RELAY_PIN, OUTPUT);
-    digitalWrite(RELAY_PIN, LOW); // Default to OFF (assuming active LOW)
+    digitalWrite(RELAY_PIN, LOW); // Default to OFF
     Serial.println("Relay Pin Initialized (default OFF).");
 
     // Initialize sensors

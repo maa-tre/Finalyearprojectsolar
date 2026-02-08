@@ -1,0 +1,760 @@
+INFO:     Started server process [14328]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+WARNING: pywhatkit not installed. WhatsApp notifications disabled.
+Γ£à Model loaded successfully
+   Classes: ['Dust_Accumulation', 'Normal', 'Open_Circuit', 'Partial_Shading', 'Short_Circuit']
+INFO:     192.168.1.139:58378 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58379 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58380 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58381 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58382 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58383 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58384 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58385 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58386 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58387 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58388 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58389 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58390 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58391 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58392 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58393 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58394 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58395 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58396 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58397 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58398 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58399 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58400 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58401 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58402 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58403 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58404 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58405 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58406 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58407 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58408 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58409 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58410 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58411 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58412 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58413 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58414 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58415 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58416 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58417 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58418 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58419 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58420 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58421 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58422 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58423 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58424 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58425 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58426 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58427 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58428 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58429 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58430 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58431 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58432 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58433 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58434 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58435 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58436 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58437 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58438 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58439 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58440 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58441 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58442 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58443 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58444 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58445 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58446 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58447 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58448 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58449 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58450 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58451 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58452 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58453 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58454 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58455 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58456 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58457 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58458 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58459 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58221 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58223 - "WebSocket /ws" [accepted]
+INFO:     connection open
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58460 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=True
+≡ƒôè Processed sensor_data relay_status: True
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+INFO:     127.0.0.1:58226 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58461 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58462 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+INFO:     connection closed
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58463 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58464 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58465 - "GET /api/get-command/1 HTTP/1.1" 204 No Content
+INFO:     192.168.1.139:58466 - "GET /api/get-command/2 HTTP/1.1" 204 No Content
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58467 - "POST /api/gateway-data HTTP/1.1" 200 OK
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+[Parallel(n_jobs=8)]: Using backend ThreadingBackend with 8 concurrent workers.
+[Parallel(n_jobs=8)]: Done  15 out of  15 | elapsed:    0.0s finished
+≡ƒôí Incoming Gateway Record: ID=1, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+≡ƒôí Incoming Gateway Record: ID=2, Relay=False
+≡ƒôè Processed sensor_data relay_status: False
+ΓÜá∩╕Å WhatsApp skipped: enabled=False, number=False
+INFO:     192.168.1.139:58468 - "POST /api/gateway-data HTTP/1.1" 200 OK
+INFO:     192.168.1.139:58469 - "GET /api/get-command/1 HTTP/1.1" 204 No Content

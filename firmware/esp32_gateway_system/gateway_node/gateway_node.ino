@@ -41,6 +41,7 @@ typedef struct struct_message {
     float thermistorTemp;
     float voltage;
     float current; 
+    bool  relayStatus;
     bool  valid;
 } struct_message;
 
@@ -113,6 +114,7 @@ void sendAggregatedDataToFlask() {
                 record["thermistorTemp"]     = senderData.data.thermistorTemp;
                 record["voltage"]            = senderData.data.voltage;
                 record["current"]            = senderData.data.current; 
+                record["relayStatus"]        = senderData.data.relayStatus;
                 record["valid"]              = senderData.data.valid;
                 record["gateway_timestamp_ms"] = millis();
             } else {
