@@ -1,0 +1,61 @@
+
+================================================================================
+ESP32 USAGE GUIDE - Solar Panel Fault Detection Model
+================================================================================
+
+INSTALLATION STEPS:
+-------------------
+1. Copy 'model.h' (or 'model_manual.h') to your Arduino project folder
+2. Include it in your sketch: #include "model.h"
+3. Call predict() with your sensor readings
+
+USAGE EXAMPLE:
+--------------
+```cpp
+#include "model.h"
+
+void loop() {
+    // Read sensors (replace with actual sensor code)
+    float voltage = readVoltage();
+    float current = readCurrent();
+    float temperature = readTemperature();
+    float light = readLight();
+    
+    // Create feature array [Voltage, Current, Temperature, Light_Intensity]
+    float features[4] = {voltage, current, temperature, light};
+    
+    // Get prediction (returns 0-3)
+    int fault_type = predict(features);
+    
+    // Get human-readable name
+    const char* fault_name = CLASS_NAMES[fault_type];
+    
+    // Check if any fault
+    if (is_fault(features)) {
+        // Turn on fault LED
+        digitalWrite(FAULT_LED, HIGH);
+    }
+}
+```
+
+CLASS MAPPING:
+--------------
+0 = Normal
+1 = Open_Circuit  
+2 = Partial_Shading
+3 = Short_Circuit
+
+MEMORY USAGE (APPROXIMATE):
+---------------------------
+- Code size: ~5-15 KB (depends on tree complexity)
+- RAM usage: ~200-500 bytes
+- Suitable for ESP32 (520KB RAM, 4MB Flash)
+
+TIPS FOR ESP32:
+---------------
+1. Use float instead of double for ESP32 efficiency
+2. Model is already optimized with limited trees and depth
+3. Prediction takes ~1-5ms on ESP32 @ 240MHz
+4. Consider using FreeRTOS task for continuous monitoring
+
+================================================================================

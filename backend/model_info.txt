@@ -1,0 +1,24 @@
+Solar Panel Fault Detection - Model Info
+==================================================
+
+Model Type: Random Forest Classifier
+Number of Trees: 15
+Max Depth: 6
+
+Features:
+  0: Voltage
+  1: Current
+  2: Temperature
+  3: Light_Intensity
+  4: Efficiency
+
+Classes:
+  0: Dust_Accumulation
+  1: Normal
+  2: Open_Circuit
+  3: Partial_Shading
+  4: Short_Circuit
+
+Scaler Parameters:
+  Means: [ 14.49378125   3.81295313  44.97439062 722.97213281   9.32058594]
+  Scales: [  7.19728246   2.6752544   14.50679346 290.07440187   7.75912517]
