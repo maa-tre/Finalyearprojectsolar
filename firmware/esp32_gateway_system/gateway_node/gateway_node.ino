@@ -29,7 +29,7 @@ const char* flaskServerUrl = "http://192.168.1.69:8000/api/gateway-data";
 // --- MAC Addresses of Sender Devices ---
 // UPDATE THESE MAC ADDRESSES
 uint8_t sender1_mac[] = {0x5C, 0x01, 0x3B, 0x4C, 0xD3, 0x18}; 
-uint8_t sender2_mac[] = {0xCC, 0xDB, 0xA7, 0x48, 0x6E, 0x7C}; 
+uint8_t sender2_mac[] = {0x10, 0x52, 0x1C, 0xA7, 0x54, 0x08}; 
 
 // --- Data Structures ---
 // Must match Sender's structure
@@ -188,29 +188,26 @@ void pollForCommandsForStation(int stationId) {
         
         // Build the URL for this specific station
         // URL: http://<ip>:8000/api/get-command/<station_id>
-        // Note: flaskServerUrl is .../api/gateway-data. We need a base for commands.
-        // Assuming base is http://192.168.1.69:8000/api/get-command/
-        
-        // Constructing command URL dynamically from flaskServerUrl base
         String baseUrl = String(flaskServerUrl); 
         // Remove 'gateway-data' and replace with 'get-command/'
         baseUrl.replace("gateway-data", "get-command/");
         
         String url = baseUrl + String(stationId);
         
-        Serial.printf("Polling: %s\n", url.c_str());
+        Serial.printf("[POLL] Station %d: %s\n", stationId, url.c_str());
         http.begin(url);
+        http.setTimeout(3000);
         int httpResponseCode = http.GET();
 
         if (httpResponseCode == 200) {
             String payload = http.getString();
-            Serial.printf("Command received for station %d: %s\n", stationId, payload.c_str());
+            Serial.printf("[COMMAND] Station %d received: %s\n", stationId, payload.c_str());
 
             DynamicJsonDocument doc(256);
             DeserializationError error = deserializeJson(doc, payload);
 
             if (error) {
-                Serial.print("deserializeJson() failed: ");
+                Serial.print("[ERROR] deserializeJson() failed: ");
                 Serial.println(error.c_str());
                 http.end();
                 return;
@@ -220,18 +217,23 @@ void pollForCommandsForStation(int stationId) {
             int station_id = doc["station_id"];
             const char* command = doc["command"];
             
+            Serial.printf("[PARSE] ID=%d, CMD=%s\n", station_id, command ? command : "NULL");
+            
             if (station_id > 0 && command) {
                 if (station_id == stationId) {
+                    Serial.printf("[SEND] Sending '%s' to sender %d via ESP-NOW\n", command, station_id);
                     sendCommandToSender(station_id, command);
                 }
             }
 
         } else if (httpResponseCode == 204) {
-             // No Content - Normal
+             // No Content - Normal (no command queued)
         } else {
-            Serial.printf("HTTP GET failed code: %d\n", httpResponseCode);
+            Serial.printf("[ERROR] HTTP GET failed code: %d\n", httpResponseCode);
         }
         http.end();
+    } else {
+        Serial.println("[ERROR] WiFi Disconnected");
     }
 }
 

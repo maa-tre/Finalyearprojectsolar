@@ -100,22 +100,25 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
     struct_command received_cmd;
     memcpy(&received_cmd, incomingData, sizeof(received_cmd));
 
-    Serial.printf("Command received: %s\n", received_cmd.command);
+    Serial.printf("[RELAY CMD] Received: '%s'\n", received_cmd.command);
+    Serial.printf("[RELAY CMD] From MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                  recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
+                  recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5]);
 
     if (strcmp(received_cmd.command, "ACTIVATE_RELAY") == 0) {
-        Serial.println("Activating relay...");
-        digitalWrite(RELAY_PIN, HIGH); // On this sender it might be Active HIGH or user preference
-        Serial.printf("Relay pin %d set to HIGH (activated)\n", RELAY_PIN);
+        Serial.println("[RELAY] Activating relay...");
+        digitalWrite(RELAY_PIN, LOW); // Active LOW
+        Serial.printf("[RELAY] Pin %d set to LOW (activated)\n", RELAY_PIN);
     } else if (strcmp(received_cmd.command, "DEACTIVATE_RELAY") == 0) {
-        Serial.println("Deactivating relay...");
-        digitalWrite(RELAY_PIN, LOW); // Off
-        Serial.printf("Relay pin %d set to LOW (deactivated)\n", RELAY_PIN);
+        Serial.println("[RELAY] Deactivating relay...");
+        digitalWrite(RELAY_PIN, HIGH); // Off
+        Serial.printf("[RELAY] Pin %d set to HIGH (deactivated)\n", RELAY_PIN);
     } else if (strcmp(received_cmd.command, "TOGGLE_RELAY") == 0) {
-        Serial.println("Toggling relay...");
+        Serial.println("[RELAY] Toggling relay...");
         digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
-        Serial.printf("Relay pin %d state: %s\n", RELAY_PIN, digitalRead(RELAY_PIN) ? "HIGH" : "LOW");
+        Serial.printf("[RELAY] Pin %d toggled to: %s\n", RELAY_PIN, digitalRead(RELAY_PIN) ? "HIGH" : "LOW");
     } else {
-        Serial.printf("Unknown command: %s\n", received_cmd.command);
+        Serial.printf("[RELAY ERROR] Unknown command: %s\n", received_cmd.command);
     }
 }
 
@@ -257,11 +260,14 @@ void loop() {
         Serial.printf("Current: %.2f A\n", myData.current);
 
         // Send via ESP-NOW
-        myData.relayStatus = (digitalRead(RELAY_PIN) == HIGH);
+        // Read actual relay pin status: LOW = ON/Activated (Active LOW logic)
+        myData.relayStatus = (digitalRead(RELAY_PIN) == LOW);
         esp_err_t result = esp_now_send(centralNodeAddress, (uint8_t*)&myData, sizeof(myData));
         Serial.println(result == ESP_OK ? "Packet queued." : "Error queuing packet.");
         
         // Print relay status
-        Serial.printf("Relay Status: %s\n", digitalRead(RELAY_PIN) ? "OFF (HIGH)" : "ON (LOW)");
+        Serial.printf("Relay Status: %s (Pin: %s)\n", 
+                     myData.relayStatus ? "ACTIVATED" : "DEACTIVATED",
+                     digitalRead(RELAY_PIN) == LOW ? "LOW" : "HIGH");
     }
 }
