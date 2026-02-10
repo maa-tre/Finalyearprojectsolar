@@ -62,3 +62,5 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
+# Training data
+data/*.csv

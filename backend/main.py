@@ -203,7 +203,7 @@ def generate_simulated_data(fault_type: int = 0) -> dict:
     """Generate realistic simulated sensor data for a given fault type."""
     profile = FAULT_PROFILES.get(fault_type, FAULT_PROFILES[0])
     
-    voltage = random.uniform(*profile["voltage"]) + random.gauss(0, 0.5)
+    voltage = max(0, random.uniform(*profile["voltage"]) + random.gauss(0, 0.5))
     current = max(0, random.uniform(*profile["current"]) + random.gauss(0, 0.1))
     temperature = random.uniform(*profile["temp"]) + random.gauss(0, 1)
     light = max(0, random.uniform(*profile["light"]) + random.gauss(0, 20))
@@ -211,8 +211,8 @@ def generate_simulated_data(fault_type: int = 0) -> dict:
     efficiency = max(0, min(25, efficiency))  # Clip to realistic range
     
     return {
-        "voltage": round(voltage, 2),
-        "current": round(current, 2),
+        "voltage": round(max(0, voltage), 2),
+        "current": round(max(0, current), 2),
         "temperature": round(temperature, 2),
         "light_intensity": round(light, 2),
         "humidity": round(random.uniform(30, 80), 1),
@@ -354,7 +354,8 @@ async def send_whatsapp_notification(fault_type: str, sensor_data: dict, is_simu
 # =============================================================================
 def calculate_efficiency(voltage: float, current: float, light: float) -> float:
     """Calculate panel efficiency from sensor readings."""
-    power_output = voltage * current
+    # Ensure power is always positive or zero
+    power_output = max(0, voltage * current)
     irradiance = light * 0.0079  # lux to W/m² approximation
     solar_input = irradiance * 1.6  # 1.6 m² panel area
     
@@ -362,18 +363,6 @@ def calculate_efficiency(voltage: float, current: float, light: float) -> float:
         efficiency = (power_output / solar_input) * 100
         return round(min(25, max(0, efficiency)), 2)
     return 0.0
-
-def validate_current_reading(current: float) -> tuple:
-    """
-    Validate current reading.
-    Valid range: 0-1.5A
-    Returns: (validated_current, is_valid)
-    If invalid (negative or > 1.5A), returns (0.0, False)
-    """
-    if current < 0 or current > 1.5:
-        print(f"⚠️  [CURRENT INVALID] Out of range: {current:.3f}A (valid: 0-1.5A) → Set to 0")
-        return 0.0, False
-    return current, True
 
 def predict_fault(data: SensorData) -> PredictionResponse:
     """Make fault prediction using the ML model."""
@@ -409,7 +398,7 @@ def predict_fault(data: SensorData) -> PredictionResponse:
         fault_index=int(prediction),
         confidence=confidence,
         is_fault=(fault_type != "Normal"),
-        power=round(data.voltage * data.current, 2),
+        power=round(max(0, data.voltage * data.current), 2),
         efficiency=efficiency,
         timestamp=datetime.now().isoformat(),
         recommendation=rec["action"]
@@ -464,16 +453,13 @@ async def receive_gateway_data(records: List[GatewayRecord]):
         if not record.valid:
             continue
             
-        # Validate current reading (0-1.5A valid range)
-        validated_current, current_is_valid = validate_current_reading(record.current)
-        
-        # Convert to standard SensorData with validated current
+        # Convert to standard SensorData
         # Calculate efficiency dynamically
-        efficiency = calculate_efficiency(record.voltage, validated_current, float(record.ldrValue))
+        efficiency = calculate_efficiency(record.voltage, record.current, float(record.ldrValue))
         
         sensor_data = SensorData(
-            voltage=record.voltage,
-            current=validated_current,
+            voltage=max(0, record.voltage),  # Ensure non-negative
+            current=max(0, record.current),  # Ensure non-negative
             temperature=record.dhtTemp,
             light_intensity=float(record.ldrValue),
             humidity=record.humidity,
@@ -500,7 +486,6 @@ async def receive_gateway_data(records: List[GatewayRecord]):
             "sender_id": record.senderId,
             "sensor_data": sensor_data.model_dump(),
             "prediction": prediction.model_dump(),
-            "current_valid": current_is_valid,
             "timestamp": record.gateway_timestamp_ms
         }
         
@@ -691,6 +676,20 @@ async def whatsapp_status():
         "note": "Make sure you're logged into WhatsApp Web (web.whatsapp.com) in your browser!"
     }
 
+@app.get("/api/system-status")
+async def system_status():
+    """Get current system status - useful for debugging."""
+    with state.commands_lock:
+        pending = dict(state.pending_commands)
+    return {
+        "connection_mode": state.connection_mode,
+        "is_monitoring": state.is_monitoring,
+        "gateway_ip": state.esp32_ip,
+        "pending_commands": pending,
+        "simulated_relay_states": state.simulated_relay_states,
+        "last_notification": state.last_notification_time.isoformat() if state.last_notification_time else None
+    }
+
 # =============================================================================
 # WEBSOCKET FOR REAL-TIME DATA
 # =============================================================================
@@ -732,6 +731,10 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Use simulated relay state
                         sensor_data["relay_status"] = state.simulated_relay_states.get(station_id, False)
                         
+                        # Ensure current and voltage are always non-negative
+                        sensor_data["current"] = max(0, sensor_data["current"])
+                        sensor_data["voltage"] = max(0, sensor_data["voltage"])
+                        
                         prediction = predict_fault(SensorData(**sensor_data))
                         
                         # Send WhatsApp if fault detected (limited to last notified logic)
@@ -748,6 +751,9 @@ async def websocket_endpoint(websocket: WebSocket):
                         })
                 elif state.connection_mode == "serial" and state.serial_connection:
                     sensor_data = read_serial_data()
+                    # Ensure current and voltage are always non-negative
+                    sensor_data["current"] = max(0, sensor_data.get("current", 0))
+                    sensor_data["voltage"] = max(0, sensor_data.get("voltage", 0))
                     prediction = predict_fault(SensorData(**sensor_data))
                     await websocket.send_json({
                         "type": "data",

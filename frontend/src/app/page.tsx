@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sun, Zap, Thermometer, Eye, Activity, Wifi, Usb,
-  Play, Pause, Settings, AlertTriangle, CheckCircle, AlertCircle,
+  Play, Pause, Settings, AlertTriangle, CheckCircle,
   TrendingUp, Battery, Radio, RefreshCw, MessageCircle, Percent
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Tooltip } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Tooltip, CartesianGrid, Legend } from 'recharts'
 
 // Types
 interface SensorData {
@@ -78,6 +78,11 @@ const FAULT_INFO: Record<string, { color: string, gradient: string, icon: string
     icon: '🌫️',
     description: 'Dust reducing panel efficiency'
   },
+}
+
+// Helper function to check if current reading is abnormal
+function isCurrentAbnormal(current: number): boolean {
+  return current < 0 || current > 1.5
 }
 
 // Gauge Component
@@ -296,29 +301,215 @@ function MiniChart({ data, dataKey, color, title }: {
   color: string
   title: string
 }) {
+  const [showDetail, setShowDetail] = useState(false)
+
   return (
-    <div className="glass-card p-4">
-      <h4 className="text-sm font-medium text-gray-400 mb-3">{title}</h4>
-      <div className="h-24">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data.slice(-20)}>
-            <defs>
-              <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey={dataKey}
-              stroke={color}
-              strokeWidth={2}
-              fill={`url(#gradient-${dataKey})`}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
+    <>
+      <motion.div
+        onClick={() => setShowDetail(true)}
+        className="glass-card p-4 cursor-pointer hover:border-white/20 transition-all hover:scale-105"
+        whileHover={{ scale: 1.02 }}
+      >
+        <h4 className="text-sm font-medium text-gray-400 mb-2 flex items-center justify-between">
+          <span>{title}</span>
+          <span className="text-xs px-2 py-1 rounded bg-white/10 text-white/60">Click to expand</span>
+        </h4>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data.slice(-100)}>
+              <defs>
+                <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis 
+                dataKey="time" 
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                interval={Math.floor(data.length / 5)}
+              />
+              <YAxis 
+                tick={{ fontSize: 10, fill: '#9ca3af' }}
+                width={40}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1f1f1f', 
+                  border: `1px solid ${color}`,
+                  borderRadius: '8px'
+                }} 
+                formatter={(value) => value.toFixed(2)}
+                labelStyle={{ color: '#9ca3af' }}
+              />
+              <Area
+                type="monotone"
+                dataKey={dataKey}
+                stroke={color}
+                strokeWidth={2}
+                fill={`url(#gradient-${dataKey})`}
+                dot={{ fill: color, r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-2 text-xs text-gray-500 text-center">
+          Points: {data.length} | Latest: {data.length > 0 ? (data[data.length - 1] as any)[dataKey]?.toFixed(2) : 'N/A'}
+        </div>
+      </motion.div>
+
+      {/* Detailed Modal */}
+      <AnimatePresence>
+        {showDetail && (
+          <motion.div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowDetail(false)}
+          >
+            <motion.div
+              className="bg-dark-800 border border-white/20 rounded-2xl p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold flex items-center gap-3">
+                  <div className="w-4 h-4 rounded" style={{ backgroundColor: color }} />
+                  {title} - Detailed Analysis
+                </h2>
+                <motion.button
+                  onClick={() => setShowDetail(false)}
+                  className="p-2 hover:bg-white/10 rounded-lg transition-all"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  ✕
+                </motion.button>
+              </div>
+
+              {/* Large Chart */}
+              <div className="mb-8 p-6 rounded-xl bg-white/5 border border-white/10">
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">100-Point History</h3>
+                <div className="h-96">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data.slice(-100)}>
+                      <defs>
+                        <linearGradient id={`detail-gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                          <stop offset="100%" stopColor={color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
+                      <XAxis 
+                        dataKey="time" 
+                        tick={{ fontSize: 12, fill: '#9ca3af' }}
+                        interval={Math.max(0, Math.floor(data.length / 12))}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 12, fill: '#9ca3af' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1f2937', 
+                          border: `2px solid ${color}`,
+                          borderRadius: '12px',
+                          padding: '12px'
+                        }} 
+                        formatter={(value, name) => [(value as number).toFixed(3), 'Value']}
+                        labelFormatter={(label) => `Time: ${label}`}
+                        labelStyle={{ color: '#f3f4f6' }}
+                      />
+                      <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                      <Line
+                        type="monotone"
+                        dataKey={dataKey}
+                        stroke={color}
+                        strokeWidth={3}
+                        dot={{ fill: color, r: 4 }}
+                        activeDot={{ r: 7, fill: color }}
+                        name={title}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Statistics */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+                <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                  <p className="text-xs text-gray-400 mb-1">Maximum</p>
+                  <p className="text-2xl font-bold text-green-400">
+                    {data.length > 0 ? Math.max(...data.map(h => (h as any)[dataKey]), 0).toFixed(3) : 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                  <p className="text-xs text-gray-400 mb-1">Minimum</p>
+                  <p className="text-2xl font-bold text-blue-400">
+                    {data.length > 0 ? Math.min(...data.map(h => (h as any)[dataKey]), 0).toFixed(3) : 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                  <p className="text-xs text-gray-400 mb-1">Average</p>
+                  <p className="text-2xl font-bold text-purple-400">
+                    {data.length > 0 ? (data.reduce((a, b) => a + (b as any)[dataKey], 0) / data.length).toFixed(3) : 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                  <p className="text-xs text-gray-400 mb-1">Current</p>
+                  <p className="text-2xl font-bold text-yellow-400">
+                    {data.length > 0 ? (data[data.length - 1] as any)[dataKey]?.toFixed(3) : 'N/A'}
+                  </p>
+                </div>
+                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <p className="text-xs text-gray-400 mb-1">Total Points</p>
+                  <p className="text-2xl font-bold text-red-400">{data.length}</p>
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-3 text-gray-300">Data Points (Last 20 entries)</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="px-4 py-2 text-left text-gray-400">#</th>
+                        <th className="px-4 py-2 text-left text-gray-400">Time</th>
+                        <th className="px-4 py-2 text-left" style={{ color }}>{title}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.slice(-20).map((row, idx) => (
+                        <tr key={idx} className="border-b border-white/5 hover:bg-white/5 transition">
+                          <td className="px-4 py-2 text-gray-500">{data.length - 20 + idx + 1}</td>
+                          <td className="px-4 py-2 text-gray-300">{row.time}</td>
+                          <td className="px-4 py-2 font-semibold" style={{ color }}>
+                            {((row as any)[dataKey] as number).toFixed(3)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <motion.button
+                onClick={() => setShowDetail(false)}
+                className="w-full p-3 rounded-lg bg-gradient-to-r from-solar-500 to-solar-600 text-white font-semibold hover:from-solar-600 hover:to-solar-700 transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Close Detailed View
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 
@@ -341,9 +532,6 @@ export default function Home() {
   const [selectedStation, setSelectedStation] = useState<number>(1)
   const [availableStations, setAvailableStations] = useState<Set<number>>(new Set([1]))
   const [stationData, setStationData] = useState<Record<number, StationState>>({})
-  
-  // Current sensor validation state
-  const [currentValidStatus, setCurrentValidStatus] = useState<Record<number, boolean>>({1: true, 2: true})
 
   // Compute current display data from selected station
   const currentStation = stationData[selectedStation] || {
@@ -406,7 +594,6 @@ export default function Home() {
       let targetStationId = 1
       let incomingSensorData = data.sensor_data
       let incomingPrediction = data.prediction
-      let currentValid = data.current_valid !== false // Default to true if not specified
 
       if (connectionMode === 'simulator') {
         if (data.type !== 'data') return
@@ -423,12 +610,6 @@ export default function Home() {
         if (!newSet.has(targetStationId)) newSet.add(targetStationId)
         return newSet
       })
-      
-      // Track current sensor validation status
-      setCurrentValidStatus(prev => ({
-        ...prev,
-        [targetStationId]: currentValid
-      }))
 
       setIsConnected(true)
 
@@ -665,11 +846,11 @@ export default function Home() {
                 icon={Zap}
               />
               <Gauge
-                value={sensorData?.current || 0}
-                min={0} max={12}
+                value={connectionMode === 'simulator' ? (sensorData?.current || 0) : (isCurrentAbnormal(sensorData?.current || 0) ? 0 : (sensorData?.current || 0))}
+                min={0} max={connectionMode === 'simulator' ? 12 : 1.5}
                 label="Current"
                 unit="A"
-                color="#ef4444"
+                color={connectionMode === 'simulator' ? '#ef4444' : (isCurrentAbnormal(sensorData?.current || 0) ? "#f97316" : "#ef4444")}
                 icon={Activity}
               />
               <Gauge
@@ -690,59 +871,114 @@ export default function Home() {
               />
             </div>
 
-            {/* Sensor Data Validation Status */}
-            {!currentValidStatus[selectedStation] && (
+            {/* Abnormal Current Reading Alert */}
+            {connectionMode !== 'simulator' && sensorData && isCurrentAbnormal(sensorData.current) && (
               <motion.div
-                className="mb-6 p-4 rounded-xl bg-red-500/20 border-2 border-red-500/50 flex items-center gap-3"
+                className="mb-6 p-4 rounded-lg border-2 border-orange-500/50 bg-orange-500/10 flex items-start gap-3"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <AlertCircle className="w-6 h-6 text-red-400 animate-pulse" />
-                <div>
-                  <p className="font-bold text-red-300">⚠️ INVALID CURRENT READING</p>
-                  <p className="text-sm text-red-300/80">Current reading was out of valid range (0-1.5A) and has been set to 0. This may indicate a sensor error.</p>
+                <AlertTriangle className="w-6 h-6 text-orange-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-orange-400">⚠️ Abnormal Current Reading Detected</p>
+                  <p className="text-sm text-orange-300 mt-1">
+                    Current value {sensorData.current.toFixed(2)}A is outside the normal operating range (0.0 - 1.5A).
+                    This indicates a faulty sensor reading or measurement error. Please check the current sensor connection and recalibration.
+                  </p>
                 </div>
               </motion.div>
             )}
 
-            {/* Charts */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-              <MiniChart data={history} dataKey="power" color="#fbbf24" title="Power Output (W)" />
-              <MiniChart data={history} dataKey="voltage" color="#3b82f6" title="Voltage (V)" />
-              <MiniChart data={history} dataKey="current" color="#ef4444" title="Current (A)" />
-              <MiniChart data={history} dataKey="temperature" color="#f59e0b" title="Temperature (°C)" />
-              <MiniChart data={history} dataKey="light" color="#22c55e" title="Light (lux)" />
-              <MiniChart data={history} dataKey="efficiency" color="#8b5cf6" title="Efficiency (%)" />
-              <MiniChart data={history} dataKey="humidity" color="#06b6d4" title="Humidity (%)" />
-              <MiniChart data={history} dataKey="thermistor" color="#ec4899" title="Case Temperature (°C)" />
+            {/* Detailed Charts Grid - Up to 100 data points per chart */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-solar-400" />
+                Sensor History Charts (Up to 100 points)
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <MiniChart data={history} dataKey="power" color="#fbbf24" title="Power Output (W)" />
+                <MiniChart data={history} dataKey="voltage" color="#3b82f6" title="Voltage (V)" />
+                <MiniChart data={history} dataKey="current" color="#ef4444" title="Current (A)" />
+                <MiniChart data={history} dataKey="temperature" color="#f59e0b" title="Temperature (°C)" />
+                <MiniChart data={history} dataKey="light" color="#22c55e" title="Light (lux)" />
+                <MiniChart data={history} dataKey="efficiency" color="#8b5cf6" title="Efficiency (%)" />
+                <MiniChart data={history} dataKey="humidity" color="#06b6d4" title="Humidity (%)" />
+                <MiniChart data={history} dataKey="thermistor" color="#ec4899" title="Case Temperature (°C)" />
+              </div>
             </div>
 
-            {/* Main Chart */}
+            {/* Main Chart - Detailed Power Output */}
             <div className="glass-card p-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-solar-400" />
-                Real-time Power Output
+                Real-time Power Output (Detailed - Up to 100 points)
               </h3>
-              <div className="h-64">
+              <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={history.slice(-50)}>
+                  <AreaChart data={history.slice(-100)}>
                     <defs>
                       <linearGradient id="powerGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.4} />
+                        <stop offset="0%" stopColor="#fbbf24" stopOpacity={0.5} />
                         <stop offset="100%" stopColor="#fbbf24" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
-                    <YAxis stroke="#64748b" fontSize={12} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis 
+                      dataKey="time" 
+                      stroke="#64748b" 
+                      fontSize={11}
+                      tick={{ fill: '#9ca3af' }}
+                      interval={Math.floor(history.length / 8)}
+                    />
+                    <YAxis 
+                      stroke="#64748b" 
+                      fontSize={11}
+                      tick={{ fill: '#9ca3af' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f1f1f', 
+                        border: '1px solid #fbbf24',
+                        borderRadius: '8px'
+                      }}
+                      formatter={(value) => [(value as number).toFixed(2) + ' W', 'Power']}
+                      labelStyle={{ color: '#9ca3af' }}
+                    />
+                    <Legend 
+                      wrapperStyle={{ paddingTop: '20px' }}
+                      formatter={() => 'Power Output (W)'}
+                    />
                     <Area
                       type="monotone"
                       dataKey="power"
                       stroke="#fbbf24"
-                      strokeWidth={2}
+                      strokeWidth={3}
                       fill="url(#powerGradient)"
+                      dot={{ fill: '#fbbf24', r: 3 }}
+                      activeDot={{ r: 6, fill: '#f59e0b' }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="mt-4 grid grid-cols-4 gap-2 text-center">
+                <div className="p-2 rounded bg-white/5">
+                  <p className="text-xs text-gray-400">Total Points</p>
+                  <p className="text-lg font-bold text-yellow-400">{history.length}</p>
+                </div>
+                <div className="p-2 rounded bg-white/5">
+                  <p className="text-xs text-gray-400">Max Power</p>
+                  <p className="text-lg font-bold text-green-400">{Math.max(...history.map(h => h.power), 0).toFixed(1)} W</p>
+                </div>
+                <div className="p-2 rounded bg-white/5">
+                  <p className="text-xs text-gray-400">Min Power</p>
+                  <p className="text-lg font-bold text-blue-400">{Math.min(...history.map(h => h.power), 0).toFixed(1)} W</p>
+                </div>
+                <div className="p-2 rounded bg-white/5">
+                  <p className="text-xs text-gray-400">Avg Power</p>
+                  <p className="text-lg font-bold text-purple-400">
+                    {history.length > 0 ? (history.reduce((a, b) => a + b.power, 0) / history.length).toFixed(1) : 0} W
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -802,6 +1038,52 @@ export default function Home() {
                 Commands are polled by the gateway every 5 seconds
               </p>
             </div>
+
+            {/* Current Reading Status Indicator - Only in WiFi/Serial mode */}
+            {connectionMode !== 'simulator' && (
+            <div className={`glass-card p-6 border-2 ${isCurrentAbnormal(sensorData?.current || 0) 
+              ? 'border-orange-500/50 bg-orange-500/5' 
+              : 'border-green-500/50 bg-green-500/5'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Activity className={`w-5 h-5 ${isCurrentAbnormal(sensorData?.current || 0) ? 'text-orange-400' : 'text-green-400'}`} />
+                  Current Reading Status
+                </h3>
+                <motion.div
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                    isCurrentAbnormal(sensorData?.current || 0)
+                      ? 'bg-orange-500/20 text-orange-400'
+                      : 'bg-green-500/20 text-green-400'
+                  }`}
+                  animate={isCurrentAbnormal(sensorData?.current || 0) ? { scale: [1, 1.05, 1] } : {}}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                >
+                  <div className={`w-2 h-2 rounded-full ${isCurrentAbnormal(sensorData?.current || 0) ? 'bg-orange-400' : 'bg-green-400'}`} />
+                  {isCurrentAbnormal(sensorData?.current || 0) ? 'ABNORMAL' : 'NORMAL'}
+                </motion.div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center p-2 rounded bg-white/5">
+                  <span className="text-sm text-gray-400">Current Value:</span>
+                  <span className={`text-lg font-bold ${isCurrentAbnormal(sensorData?.current || 0) ? 'text-orange-400' : 'text-green-400'}`}>
+                    {(sensorData?.current || 0).toFixed(2)} A
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-2 rounded bg-white/5">
+                  <span className="text-sm text-gray-400">Valid Range:</span>
+                  <span className="text-sm font-medium text-blue-400">0.0 - 1.5 A</span>
+                </div>
+                {isCurrentAbnormal(sensorData?.current || 0) && (
+                  <div className="mt-3 p-2 rounded bg-orange-500/10 border border-orange-500/30">
+                    <p className="text-xs text-orange-300 text-center">
+                      ⚠️ Faulty or abnormal reading - Not a fault condition
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            )}
 
             {/* Fault Distribution */}
             <div className="glass-card p-6">
