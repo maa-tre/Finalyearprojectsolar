@@ -129,7 +129,8 @@ class AppState:
         self.simulation_fault_type = 0  # 0=Normal, 1=Open, 2=Partial, 3=Short, 4=Dust
         self.connected_clients: List[WebSocket] = []
         self.is_monitoring = False
-        self.simulated_relay_states: Dict[int, bool] = {1: False, 2: False}
+        # Relay states: True = ON/Activated, False = OFF/Deactivated
+        self.relay_states: Dict[int, bool] = {1: False, 2: False}  # Actual feedback from hardware or simulator
         
         # WhatsApp notification tracking
         self.whatsapp_enabled = False
@@ -504,6 +505,15 @@ async def receive_gateway_data(records: List[GatewayRecord]):
             "timestamp": record.gateway_timestamp_ms
         }
         
+        # Update relay state tracking from actual hardware feedback
+        if record.senderId not in state.relay_states:
+            state.relay_states[record.senderId] = False
+        old_state = state.relay_states[record.senderId]
+        state.relay_states[record.senderId] = record.relayStatus
+        
+        if old_state != record.relayStatus:
+            print(f"✅ Relay State Updated - Station {record.senderId}: {old_state} → {record.relayStatus}")
+        
         # Broadcast
         for client in state.connected_clients:
             try:
@@ -602,17 +612,102 @@ async def queue_command(request: CommandRequest):
     with state.commands_lock:
         state.pending_commands[station_id] = request.command
     
-    # If in simulator mode, apply command immediately to simulated state
+    print(f"🕹️ Command Queued for Station {station_id}: {request.command}")
+    
+    # SIMULATOR MODE: Immediate feedback
     if state.connection_mode == "simulator":
         if request.command == "ACTIVATE_RELAY":
-            state.simulated_relay_states[request.station_id] = True
+            state.relay_states[request.station_id] = True
         elif request.command == "DEACTIVATE_RELAY":
-            state.simulated_relay_states[request.station_id] = False
+            state.relay_states[request.station_id] = False
         elif request.command == "TOGGLE_RELAY":
-            state.simulated_relay_states[request.station_id] = not state.simulated_relay_states.get(request.station_id, False)
+            state.relay_states[request.station_id] = not state.relay_states.get(request.station_id, False)
 
-    print(f"🕹️ Command Queued for Station {station_id}: {request.command}")
-    return {"status": "success", "message": "Command queued", "station_id": station_id}
+        relay_status = state.relay_states[request.station_id]
+        print(f"   [SIMULATOR] → Relay State: {relay_status}")
+        
+        # Immediately broadcast relay status change for simulator
+        payload = {
+            "type": "relay_command_acknowledged",
+            "station_id": request.station_id,
+            "command": request.command,
+            "relay_status": relay_status,
+            "status_text": "ACTIVATED" if relay_status else "DEACTIVATED",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        for client in state.connected_clients:
+            try:
+                await client.send_json(payload)
+            except:
+                pass
+    else:
+        # REAL HARDWARE MODE (WiFi/Gateway): Command is queued
+        # Relay state will update when Gateway sends back actual sensor data
+        print(f"   [GATEWAY] → Command queued for Gateway to retrieve")
+    
+    return {
+        "status": "success", 
+        "message": "Command queued", 
+        "station_id": request.station_id,
+        "relay_status": state.relay_states.get(request.station_id, False),
+        "mode": state.connection_mode
+    }
+
+@app.get("/api/relay-status/{station_id}")
+async def get_relay_status(station_id: int):
+    """Get actual relay status for a specific station."""
+    status = state.relay_states.get(station_id, False)
+    return {
+        "station_id": station_id,
+        "relay_status": status,  # True = ON/Activated, False = OFF/Deactivated
+        "status_text": "ACTIVATED" if status else "DEACTIVATED",
+        "connection_mode": state.connection_mode
+    }
+
+@app.post("/api/test-relay/{station_id}")
+async def test_relay(station_id: int, command: str = "TOGGLE_RELAY"):
+    """Test relay command directly (for debugging)."""
+    if command not in ["ACTIVATE_RELAY", "DEACTIVATE_RELAY", "TOGGLE_RELAY"]:
+        raise HTTPException(status_code=400, detail="Invalid command")
+    
+    print(f"\n🧪 TEST: Sending {command} to Station {station_id}")
+    print(f"   Current relay state: {state.relay_states.get(station_id, False)}")
+    
+    # Apply command
+    if command == "ACTIVATE_RELAY":
+        state.relay_states[station_id] = True
+    elif command == "DEACTIVATE_RELAY":
+        state.relay_states[station_id] = False
+    elif command == "TOGGLE_RELAY":
+        state.relay_states[station_id] = not state.relay_states.get(station_id, False)
+    
+    new_status = state.relay_states[station_id]
+    print(f"   New relay state: {new_status}")
+    
+    # Broadcast immediately
+    payload = {
+        "type": "relay_command_acknowledged",
+        "station_id": station_id,
+        "command": command,
+        "relay_status": new_status,
+        "status_text": "ACTIVATED" if new_status else "DEACTIVATED",
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    for client in state.connected_clients:
+        try:
+            await client.send_json(payload)
+        except:
+            pass
+    
+    return {
+        "status": "tested",
+        "station_id": station_id,
+        "command": command,
+        "relay_status": new_status,
+        "status_text": "ACTIVATED" if new_status else "DEACTIVATED"
+    }
 
 @app.get("/api/get-command/{station_id}")
 async def get_pending_command(station_id: str):
@@ -729,8 +824,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Broadcast for both Station 1 and Station 2
                     for station_id in [1, 2]:
                         sensor_data = generate_simulated_data(state.simulation_fault_type)
-                        # Use simulated relay state
-                        sensor_data["relay_status"] = state.simulated_relay_states.get(station_id, False)
+                        # Use actual relay state (from user toggles)
+                        sensor_data["relay_status"] = state.relay_states.get(station_id, False)
                         
                         prediction = predict_fault(SensorData(**sensor_data))
                         

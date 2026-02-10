@@ -345,6 +345,14 @@ export default function Home() {
   // Current sensor validation state
   const [currentValidStatus, setCurrentValidStatus] = useState<Record<number, boolean>>({1: true, 2: true})
 
+  // Debug: Track relay command status
+  const [lastRelayCommand, setLastRelayCommand] = useState<{time: string, station: number, command: string, status: string}>({
+    time: '-',
+    station: 1,
+    command: '-',
+    status: 'idle'
+  })
+
   // Compute current display data from selected station
   const currentStation = stationData[selectedStation] || {
     sensorData: null,
@@ -401,6 +409,37 @@ export default function Home() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
+
+      // --- IMMEDIATE RELAY FEEDBACK (All modes) ---
+      if (data.type === 'relay_command_acknowledged') {
+        console.log(`✓ Relay command acknowledged for Station ${data.station_id}: ${data.command}`)
+        console.log(`  → New state: ${data.status_text}`)
+        
+        setStationData(prev => {
+          const current = prev[data.station_id] || {
+            sensorData: null,
+            prediction: null,
+            history: [],
+            faultCounts: {},
+            lastUpdate: new Date()
+          }
+          
+          // Update sensor data with new relay status
+          const updatedSensorData = current.sensorData ? { ...current.sensorData } : null
+          if (updatedSensorData) {
+            updatedSensorData.relay_status = data.relay_status
+          }
+
+          return {
+            ...prev,
+            [data.station_id]: {
+              ...current,
+              sensorData: updatedSensorData || current.sensorData
+            }
+          }
+        })
+        return // Don't process as normal data
+      }
 
       // --- STRICT MODE FILTERING ---
       let targetStationId = 1
@@ -759,49 +798,150 @@ export default function Home() {
             />
 
             {/* Relay Control Panel */}
-            <div className="glass-card p-6 overflow-hidden relative">
+            <motion.div 
+              className="glass-card p-6 overflow-hidden relative"
+              layout
+            >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Zap className={`w-5 h-5 ${sensorData?.relay_status ? 'text-yellow-400' : 'text-gray-500'}`} />
-                  Relay Control
+                  <Zap className={`w-5 h-5 transition-colors ${sensorData?.relay_status ? 'text-yellow-400 animate-pulse' : 'text-gray-500'}`} />
+                  Relay Control (Station {selectedStation})
                 </h3>
-                <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest ${sensorData?.relay_status ? 'bg-yellow-500/20 text-yellow-400' : 'bg-gray-500/20 text-gray-400'
-                  }`}>
-                  {sensorData?.relay_status ? 'Active' : 'Inactive'}
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4 text-center">
-                <p className="text-xs text-gray-400 mb-1">Station {selectedStation} Relay State</p>
-                <div className={`text-2xl font-bold ${sensorData?.relay_status ? 'text-white' : 'text-gray-600'}`}>
-                  {sensorData?.relay_status ? 'POWER ON' : 'POWER OFF'}
-                </div>
-              </div>
-
-              <motion.button
-                onClick={() => {
-                  const cmd = sensorData?.relay_status ? 'DEACTIVATE_RELAY' : 'ACTIVATE_RELAY';
-                  fetch('http://localhost:8000/api/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ station_id: selectedStation, command: cmd })
-                  });
-                }}
-                className={`w-full p-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all ${sensorData?.relay_status
-                    ? 'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20'
-                    : 'bg-green-500 text-dark-900 hover:bg-green-600 shadow-lg shadow-green-500/20'
+                <motion.div 
+                  className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${sensorData?.relay_status 
+                    ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' 
+                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
                   }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <RefreshCw className={`w-5 h-5 ${sensorData?.relay_status ? 'animate-spin-slow' : ''}`} />
-                {sensorData?.relay_status ? 'DEACTIVATE RELAY' : 'ACTIVATE RELAY'}
-              </motion.button>
+                  animate={{
+                    scale: sensorData?.relay_status ? 1.05 : 1,
+                  }}
+                >
+                  {sensorData?.relay_status ? '✓ ACTIVATED' : '✗ DEACTIVATED'}
+                </motion.div>
+              </div>
 
-              <p className="text-[10px] text-gray-500 mt-4 text-center italic">
-                Commands are polled by the gateway every 5 seconds
-              </p>
-            </div>
+              <motion.div 
+                className="p-4 rounded-xl bg-gradient-to-br mb-4 text-center border transition-all"
+                animate={{
+                  background: sensorData?.relay_status 
+                    ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(168, 85, 247, 0.1))'
+                    : 'linear-gradient(135deg, rgba(107, 114, 128, 0.05), rgba(75, 85, 99, 0.05))',
+                  borderColor: sensorData?.relay_status ? 'rgba(234, 179, 8, 0.5)' : 'rgba(107, 114, 128, 0.2)'
+                }}
+              >
+                <p className="text-xs text-gray-400 mb-2">
+                  Pin Status: GPIO {selectedStation === 1 ? '13' : selectedStation === 2 ? '2' : '?'}
+                </p>
+                <div className={`text-3xl font-black tracking-wide transition-all ${sensorData?.relay_status 
+                  ? 'text-yellow-400 drop-shadow-lg drop-shadow-yellow-500/50' 
+                  : 'text-gray-600 drop-shadow-none'
+                }`}>
+                  {sensorData?.relay_status ? '⚡ ON' : '⊘ OFF'}
+                </div>
+                <p className="text-[10px] text-gray-500 mt-2">
+                  {sensorData?.relay_status ? 'Pin pulled LOW (Active)' : 'Pin released HIGH (Inactive)'}
+                </p>
+                <p className="text-[9px] text-gray-600 mt-2">
+                  {selectedStation === 1 ? 'Station 1 (sender_node)' : selectedStation === 2 ? 'Station 2 (sender_node_A)' : 'Unknown Station'}
+                </p>
+              </motion.div>
+
+              <div className="space-y-2">
+                <motion.button
+                  onClick={async () => {
+                    const nextCmd = sensorData?.relay_status ? 'DEACTIVATE_RELAY' : 'ACTIVATE_RELAY';
+                    setLastRelayCommand({
+                      time: new Date().toLocaleTimeString(),
+                      station: selectedStation,
+                      command: nextCmd,
+                      status: 'sending...'
+                    })
+                    try {
+                      const resp = await fetch('http://localhost:8000/api/command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ station_id: selectedStation, command: nextCmd })
+                      })
+                      if (resp.ok) {
+                        const data = await resp.json()
+                        console.log(`✓ ${nextCmd} command accepted by backend`)
+                        setLastRelayCommand(prev => ({...prev, status: 'queued (waiting for ESP response)'}))
+                      } else {
+                        setLastRelayCommand(prev => ({...prev, status: 'failed'}))
+                      }
+                    } catch (err) {
+                      console.error('Failed to send relay command:', err)
+                      setLastRelayCommand(prev => ({...prev, status: 'error: ' + String(err).substring(0, 30)}))
+                    }
+                  }}
+                  className={`w-full p-4 rounded-xl font-bold flex items-center justify-center gap-3 transition-all duration-300 ${sensorData?.relay_status
+                      ? 'bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 hover:border-red-500/70 active:scale-95'
+                      : 'bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 hover:border-green-500/70 active:scale-95'
+                    }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  <RefreshCw className="w-5 h-5" />
+                  <span>{sensorData?.relay_status ? 'Turn Off' : 'Turn On'}</span>
+                </motion.button>
+
+                <motion.button
+                  onClick={async () => {
+                    setLastRelayCommand({
+                      time: new Date().toLocaleTimeString(),
+                      station: selectedStation,
+                      command: 'TOGGLE_RELAY',
+                      status: 'sending...'
+                    })
+                    try {
+                      const resp = await fetch('http://localhost:8000/api/command', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ station_id: selectedStation, command: 'TOGGLE_RELAY' })
+                      })
+                      if (resp.ok) {
+                        console.log(`✓ TOGGLE command accepted by backend`)
+                        setLastRelayCommand(prev => ({...prev, status: 'queued (waiting for ESP response)'}))
+                      } else {
+                        setLastRelayCommand(prev => ({...prev, status: 'failed'}))
+                      }
+                    } catch (err) {
+                      console.error('Failed to send toggle command:', err)
+                      setLastRelayCommand(prev => ({...prev, status: 'error: ' + String(err).substring(0, 30)}))
+                    }
+                  }}
+                  className="w-full p-3 rounded-xl font-semibold flex items-center justify-center gap-2 bg-white/5 border border-white/20 text-white/70 hover:bg-white/10 active:scale-95 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Quick Toggle</span>
+                </motion.button>
+              </div>
+
+              {/* DEBUG INFO PANEL */}
+              <div className="mt-4 p-3 rounded-lg bg-white/5 border border-white/10 space-y-2">
+                <div className="text-[10px] font-mono text-gray-400">
+                  <div>Mode: <span className="text-blue-300">{connectionMode.toUpperCase()}</span></div>
+                  <div>Last Cmd: <span className="text-yellow-300">{lastRelayCommand.command}</span> @ {lastRelayCommand.time}</div>
+                  <div>Status: <span className={`font-bold ${
+                    lastRelayCommand.status === 'queued (waiting for ESP response)' ? 'text-amber-300' :
+                    lastRelayCommand.status.includes('error') ? 'text-red-300' :
+                    lastRelayCommand.status === 'idle' ? 'text-gray-400' :
+                    'text-green-300'
+                  }`}>{lastRelayCommand.status}</span></div>
+                  <div>Station: <span className="text-purple-300">S{lastRelayCommand.station} (GPIO {selectedStation === 1 ? '13' : '2'})</span></div>
+                </div>
+              </div>
+
+              <motion.p 
+                className="text-[10px] text-gray-500 mt-3 text-center italic"
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              >
+                Real pin status: {sensorData ? '✓ Receiving updates' : '⏳ Waiting for data...'}
+              </motion.p>
+            </motion.div>
 
             {/* Fault Distribution */}
             <div className="glass-card p-6">
