@@ -363,6 +363,18 @@ def calculate_efficiency(voltage: float, current: float, light: float) -> float:
         return round(min(25, max(0, efficiency)), 2)
     return 0.0
 
+def validate_current_reading(current: float) -> tuple:
+    """
+    Validate current reading.
+    Valid range: 0-1.5A
+    Returns: (validated_current, is_valid)
+    If invalid (negative or > 1.5A), returns (0.0, False)
+    """
+    if current < 0 or current > 1.5:
+        print(f"⚠️  [CURRENT INVALID] Out of range: {current:.3f}A (valid: 0-1.5A) → Set to 0")
+        return 0.0, False
+    return current, True
+
 def predict_fault(data: SensorData) -> PredictionResponse:
     """Make fault prediction using the ML model."""
     if not state.model_loaded:
@@ -452,13 +464,16 @@ async def receive_gateway_data(records: List[GatewayRecord]):
         if not record.valid:
             continue
             
-        # Convert to standard SensorData
+        # Validate current reading (0-1.5A valid range)
+        validated_current, current_is_valid = validate_current_reading(record.current)
+        
+        # Convert to standard SensorData with validated current
         # Calculate efficiency dynamically
-        efficiency = calculate_efficiency(record.voltage, record.current, float(record.ldrValue))
+        efficiency = calculate_efficiency(record.voltage, validated_current, float(record.ldrValue))
         
         sensor_data = SensorData(
             voltage=record.voltage,
-            current=record.current,
+            current=validated_current,
             temperature=record.dhtTemp,
             light_intensity=float(record.ldrValue),
             humidity=record.humidity,
@@ -485,6 +500,7 @@ async def receive_gateway_data(records: List[GatewayRecord]):
             "sender_id": record.senderId,
             "sensor_data": sensor_data.model_dump(),
             "prediction": prediction.model_dump(),
+            "current_valid": current_is_valid,
             "timestamp": record.gateway_timestamp_ms
         }
         

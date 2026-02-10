@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sun, Zap, Thermometer, Eye, Activity, Wifi, Usb,
-  Play, Pause, Settings, AlertTriangle, CheckCircle,
+  Play, Pause, Settings, AlertTriangle, CheckCircle, AlertCircle,
   TrendingUp, Battery, Radio, RefreshCw, MessageCircle, Percent
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Tooltip } from 'recharts'
 
 // Types
 interface SensorData {
@@ -341,6 +341,9 @@ export default function Home() {
   const [selectedStation, setSelectedStation] = useState<number>(1)
   const [availableStations, setAvailableStations] = useState<Set<number>>(new Set([1]))
   const [stationData, setStationData] = useState<Record<number, StationState>>({})
+  
+  // Current sensor validation state
+  const [currentValidStatus, setCurrentValidStatus] = useState<Record<number, boolean>>({1: true, 2: true})
 
   // Compute current display data from selected station
   const currentStation = stationData[selectedStation] || {
@@ -403,6 +406,7 @@ export default function Home() {
       let targetStationId = 1
       let incomingSensorData = data.sensor_data
       let incomingPrediction = data.prediction
+      let currentValid = data.current_valid !== false // Default to true if not specified
 
       if (connectionMode === 'simulator') {
         if (data.type !== 'data') return
@@ -419,6 +423,12 @@ export default function Home() {
         if (!newSet.has(targetStationId)) newSet.add(targetStationId)
         return newSet
       })
+      
+      // Track current sensor validation status
+      setCurrentValidStatus(prev => ({
+        ...prev,
+        [targetStationId]: currentValid
+      }))
 
       setIsConnected(true)
 
@@ -679,6 +689,21 @@ export default function Home() {
                 icon={Percent}
               />
             </div>
+
+            {/* Sensor Data Validation Status */}
+            {!currentValidStatus[selectedStation] && (
+              <motion.div
+                className="mb-6 p-4 rounded-xl bg-red-500/20 border-2 border-red-500/50 flex items-center gap-3"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <AlertCircle className="w-6 h-6 text-red-400 animate-pulse" />
+                <div>
+                  <p className="font-bold text-red-300">⚠️ INVALID CURRENT READING</p>
+                  <p className="text-sm text-red-300/80">Current reading was out of valid range (0-1.5A) and has been set to 0. This may indicate a sensor error.</p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Charts */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
