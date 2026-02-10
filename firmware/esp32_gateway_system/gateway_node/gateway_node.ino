@@ -29,7 +29,7 @@ const char* flaskServerUrl = "http://192.168.1.69:8000/api/gateway-data";
 // --- MAC Addresses of Sender Devices ---
 // UPDATE THESE MAC ADDRESSES
 uint8_t sender1_mac[] = {0x5C, 0x01, 0x3B, 0x4C, 0xD3, 0x18}; 
-uint8_t sender2_mac[] = {0x10, 0x52, 0x1C, 0xA7, 0x54, 0x08}; // FIXED: Correct Station 2 MAC 
+uint8_t sender2_mac[] = {0x10, 0x52, 0x1C, 0xA7, 0x54, 0x08}; 
 
 // --- Data Structures ---
 // Must match Sender's structure

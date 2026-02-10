@@ -108,12 +108,12 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
 
     if (strcmp(received_cmd.command, "ACTIVATE_RELAY") == 0) {
         Serial.println("[RELAY] Activating relay...");
-        digitalWrite(RELAY_PIN, LOW); // Active LOW
-        Serial.printf("[RELAY] Pin %d set to LOW (activated)\n", RELAY_PIN);
+        digitalWrite(RELAY_PIN, HIGH); // Active HIGH
+        Serial.printf("[RELAY] Pin %d set to HIGH (activated)\n", RELAY_PIN);
     } else if (strcmp(received_cmd.command, "DEACTIVATE_RELAY") == 0) {
         Serial.println("[RELAY] Deactivating relay...");
-        digitalWrite(RELAY_PIN, HIGH); // Off
-        Serial.printf("[RELAY] Pin %d set to HIGH (deactivated)\n", RELAY_PIN);
+        digitalWrite(RELAY_PIN, LOW); // Off
+        Serial.printf("[RELAY] Pin %d set to LOW (deactivated)\n", RELAY_PIN);
     } else if (strcmp(received_cmd.command, "TOGGLE_RELAY") == 0) {
         Serial.println("[RELAY] Toggling relay...");
         digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
@@ -133,8 +133,8 @@ void setup() {
 
     // Initialize Relay Pin
     pinMode(RELAY_PIN, OUTPUT);
-    digitalWrite(RELAY_PIN, LOW); // Default to OFF (assuming active LOW)
-    Serial.println("Relay Pin Initialized (default OFF).");
+    digitalWrite(RELAY_PIN, LOW); // Default to OFF (Active HIGH relay)
+    Serial.println("Relay Pin Initialized (default OFF - Active HIGH logic).");
 
     // Initialize sensors
     dht.begin();
@@ -255,14 +255,12 @@ void loop() {
 
         // Noise gate: ignore very small currents
         if (abs(myData.current) < 0.03) myData.current = 0.00;
-        
-        Serial.printf("Current Sensor - Pin Voltage: %.3f V | Current: %.3f A\n", 
-                     voltageAtPin, myData.current);
-        Serial.printf("Current: %.2f A\n", myData.current);
+
+        Serial.printf("Voltage: %.2f V | Current: %.2f A\n", myData.voltage, myData.current);
 
         // Send via ESP-NOW
         // Read actual relay pin status: LOW = ON/Activated (Active LOW logic)
-        myData.relayStatus = (digitalRead(RELAY_PIN) == LOW);
+        myData.relayStatus = (digitalRead(RELAY_PIN) == HIGH);
         esp_err_t result = esp_now_send(centralNodeAddress, (uint8_t*)&myData, sizeof(myData));
         Serial.println(result == ESP_OK ? "Packet queued." : "Error queuing packet.");
         
