@@ -1,8 +1,8 @@
 /*
  * Solar Panel Fault Detection - Gateway Node Firmware
  * 
- * Role: Receives data from multiple Sender Nodes via ESP-NOW and forwards it to the Backend via WiFi.
- * Hardware: ESP32 (No sensors required)
+ * ROLE: Receives data from multiple Sender Nodes via ESP-NOW and forwards it to the Backend via WiFi.
+ * HARDWARE: ESP32 (No sensors required)
  * 
  * Based on: updatereciever.ino from myproject
  */
@@ -11,28 +11,36 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <map>
+#include <vector>
 #include <ArduinoJson.h>
-#include "esp_wifi.h" 
+#include <esp_wifi.h> 
 
 // --- Wi-Fi Credentials ---
-const char* ssid     = "Acerhotspot";     // <<< UPDATE THIS
-const char* password = "123456780"; // <<< UPDATE THIS
+// Updating to your new network while keeping the "OLD/NEW" comment style if preferred
+const char* ssid     = "Acerhotspot";
+const char* password = "123456780";
+//const char* ssid     = "NCE Student";      // NEW Updated WiFi name
+//const char* password = "welcome@nce";      // UPDATED
+
+// --- Discovery Configuration (For Scanning Method) ---
+// This starts an AP so Senders can find the Gateway's channel
+const char* GATEWAY_SOFTAP_SSID = "Solar_Panel_Gateway"; 
 
 // --- Fixed Wi-Fi Channel ---
-// Must match the channel of the Sender nodes
+// Must match the channel of the Sender nodes when not scanning
 const uint8_t FIXED_CHANNEL = 1; 
 
 // --- Backend Server URL ---
-// Replace with your computer's IP address
-const char* flaskServerUrl = "http://192.168.1.69:8000/api/gateway-data"; 
+// Using your NEW Flask IP
+const char* flaskServerUrl = "http://192.168.1.69:8000/api/gateway-data";
 
 // --- MAC Addresses of Sender Devices ---
-// UPDATE THESE MAC ADDRESSES
+// UPDATE THESE MAC ADDRESSES IF HARDWARE CHANGES
 uint8_t sender1_mac[] = {0x5C, 0x01, 0x3B, 0x4C, 0xD3, 0x18}; 
 uint8_t sender2_mac[] = {0x10, 0x52, 0x1C, 0xA7, 0x54, 0x08}; 
 
 // --- Data Structures ---
-// Must match Sender's structure
+// Must match Sender's structure exactly
 typedef struct struct_message {
     int   senderId;
     int   ldrValue;
@@ -59,7 +67,7 @@ std::map<int, SenderData> incomingDataMap;
 
 // Timers
 unsigned long lastFlaskSendTime = 0;
-unsigned long flaskSendInterval = 2000; // 2 seconds
+unsigned long flaskSendInterval = 2000;      // 2 seconds
 unsigned long senderTimeoutInterval = 25000; // 25 seconds for stale data
 
 // --- ESP-NOW Callbacks ---
@@ -71,17 +79,22 @@ void OnDataRecv(const esp_now_recv_info* recv_info, const uint8_t* incomingDataP
     incomingDataMap[tempIncomingData.senderId].lastReceivedTimestamp = millis();
 
     Serial.printf(
-        "Data received from Sender ID: %d | MAC: %02X:%02X:%02X:%02X:%02X:%02X\n"
-        "  -> V: %.2f V, I: %.3f A, T: %.2f C\n",
+        "Data received from Sender ID %d | MAC: %02X:%02X:%02X:%02X:%02X:%02X\n"
+        "  - V: %.2f V, I: %.3f A, T: %.2f C\n",
         tempIncomingData.senderId,
         recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
         recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5],
-        tempIncomingData.voltage, tempIncomingData.current, tempIncomingData.dhtTemp
+        tempIncomingData.voltage, tempIncomingData.current, tempIncomingData.thermistorTemp
     );
 }
 
 void OnDataSent(const esp_now_send_info_t* send_info, esp_now_send_status_t status) {
     // Optional: Log send status if sending commands back
+    if (status == ESP_NOW_SEND_SUCCESS) {
+        Serial.println("Command delivery Success");
+    } else {
+        Serial.println("Command delivery Fail");
+    }
 }
 
 // --- Send Data to Backend ---
@@ -96,7 +109,7 @@ void sendAggregatedDataToFlask() {
         http.addHeader("Content-Type", "application/json");
 
         // Prepare JSON Payload
-        // Capacity: Array + N objects * 8 fields per object
+        // Using DynamicJsonDocument for compatibility
         const int capacity = JSON_ARRAY_SIZE(incomingDataMap.size()) + incomingDataMap.size() * JSON_OBJECT_SIZE(10);
         DynamicJsonDocument jsonDoc(capacity);
         JsonArray records = jsonDoc.to<JsonArray>();
@@ -123,13 +136,13 @@ void sendAggregatedDataToFlask() {
             }
         }
         
-        // Use a standard iterator-based loop to safely remove elements while iterating if needed,
-        // but here we collected keys to remove first, which is safer.
+        // Safely remove elements after iteration
         for (int id : sendersToRemove) {
             incomingDataMap.erase(id);
         }
 
         if (records.size() == 0) {
+            http.end();
             return;
         }
 
@@ -144,7 +157,7 @@ void sendAggregatedDataToFlask() {
         if (httpResponseCode > 0) {
             Serial.printf("HTTP Response code: %d\n", httpResponseCode);
             if (httpResponseCode == 200) {
-                 Serial.println(http.getString());
+                 // Serial.println(http.getString());
             }
         } else {
             Serial.printf("Error code: %s\n", http.errorToString(httpResponseCode).c_str());
@@ -168,7 +181,7 @@ void sendCommandToSender(int senderId, const char* command) {
     } else if (senderId == 2) {
         target_mac = sender2_mac;
     } else {
-        Serial.printf("No MAC address registered for sender ID: %d\n", senderId);
+        Serial.printf("No MAC address registered for sender ID %d\n", senderId);
         return;
     }
 
@@ -187,15 +200,12 @@ void pollForCommandsForStation(int stationId) {
         HTTPClient http;
         
         // Build the URL for this specific station
-        // URL: http://<ip>:8000/api/get-command/<station_id>
-        String baseUrl = String(flaskServerUrl); 
-        // Remove 'gateway-data' and replace with 'get-command/'
-        baseUrl.replace("gateway-data", "get-command/");
+        String urlString = String(flaskServerUrl); 
+        urlString.replace("gateway-data", "get-command/");
+        urlString += String(stationId);
         
-        String url = baseUrl + String(stationId);
-        
-        Serial.printf("[POLL] Station %d: %s\n", stationId, url.c_str());
-        http.begin(url);
+        Serial.printf("[POLL] Station %d: %s\n", stationId, urlString.c_str());
+        http.begin(urlString);
         http.setTimeout(3000);
         int httpResponseCode = http.GET();
 
@@ -213,21 +223,19 @@ void pollForCommandsForStation(int stationId) {
                 return;
             }
 
-            // API returns {"station_id": 1, "command": "CMD"}
-            int station_id = doc["station_id"];
+            // API returns { "station_id": 1, "command": "CMD" }
+            int res_id = doc["station_id"];
             const char* command = doc["command"];
             
-            Serial.printf("[PARSE] ID=%d, CMD=%s\n", station_id, command ? command : "NULL");
-            
-            if (station_id > 0 && command) {
-                if (station_id == stationId) {
-                    Serial.printf("[SEND] Sending '%s' to sender %d via ESP-NOW\n", command, station_id);
-                    sendCommandToSender(station_id, command);
+            if (res_id > 0 && command) {
+                if (res_id == stationId) {
+                    Serial.printf("[SEND] Sending '%s' to sender %d via ESP-NOW\n", command, res_id);
+                    sendCommandToSender(res_id, command);
                 }
             }
 
         } else if (httpResponseCode == 204) {
-             // No Content - Normal (no command queued)
+              // No Content - Normal (no command queued)
         } else {
             Serial.printf("[ERROR] HTTP GET failed code: %d\n", httpResponseCode);
         }
@@ -255,12 +263,15 @@ void setup() {
 
     Serial.println("\n--- ESP32 Gateway Node Starting ---");
 
-    WiFi.mode(WIFI_STA);
+    // CRITICAL for Scanning Method: Must be AP_STA mode
+    WiFi.mode(WIFI_AP_STA);
     
-    // Set channel BEFORE connecting to WiFi to ensure consistency with ESP-NOW
-    esp_wifi_set_channel(FIXED_CHANNEL, WIFI_SECOND_CHAN_NONE);
+    // Start SoftAP so Senders can find the Gateway's current channel
+    WiFi.softAP(GATEWAY_SOFTAP_SSID);
+    Serial.printf("Discovery AP Started: %s\n", GATEWAY_SOFTAP_SSID);
 
-    Serial.printf("Connecting to %s on Channel %d\n", ssid, FIXED_CHANNEL);
+    // Connect to router
+    Serial.printf("Connecting to %s...", ssid);
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {
@@ -268,41 +279,48 @@ void setup() {
         Serial.print(".");
     }
     Serial.println("\nWiFi Connected.");
-    Serial.print("IP: "); Serial.println(WiFi.localIP());
-    Serial.print("MAC: "); Serial.println(WiFi.macAddress());
+    Serial.print("IP Address: "); Serial.println(WiFi.localIP());
+    Serial.print("Gateway MAC (STA): "); Serial.println(WiFi.macAddress());
+    
+    // Debug Print actual WiFi channel assigned by router
+    Serial.printf("[DEBUG] Running on Channel: %d\n", WiFi.channel());
 
     // Init ESP-NOW
     if (esp_now_init() != ESP_OK) {
         Serial.println("Error initializing ESP-NOW");
         return;
     }
+    Serial.println("[DEBUG] ESP-NOW Initialized Successfully");
 
     esp_now_register_recv_cb(OnDataRecv);
     esp_now_register_send_cb(OnDataSent);
+    Serial.println("[DEBUG] ESP-NOW Callbacks Registered");
 
-    // Register Sender Peers (Optional for receiving, but needed if sending commands back)
+    // Register Sender Peers
     esp_now_peer_info_t peerInfo = {};
-    peerInfo.channel = FIXED_CHANNEL;
+    peerInfo.channel = 0; // 0 means follow system channel
     peerInfo.encrypt = false;
     
     memcpy(peerInfo.peer_addr, sender1_mac, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) Serial.println("Failed to add sender 1");
+    else Serial.println("[DEBUG] Sender 1 (Station 1) Added");
 
     memcpy(peerInfo.peer_addr, sender2_mac, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) Serial.println("Failed to add sender 2");
+    else Serial.println("[DEBUG] Sender 2 (Station 2) Added");
 
-    Serial.println("Gateway Ready. Waiting for data...");
+    Serial.println("\n=== Gateway Ready. Waiting for data ===");
 }
 
 void loop() {
     // Send data to backend periodically
-    if (millis() - lastFlaskSendTime > flaskSendInterval) {
+    if (millis() - lastFlaskSendTime >= flaskSendInterval) {
         sendAggregatedDataToFlask();
         lastFlaskSendTime = millis();
     }
 
     // Poll for commands
-    if (millis() - lastCommandPollTime > commandPollInterval) {
+    if (millis() - lastCommandPollTime >= commandPollInterval) {
         pollForCommands();
         lastCommandPollTime = millis();
     }
