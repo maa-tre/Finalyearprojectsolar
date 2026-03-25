@@ -71,8 +71,9 @@ def preprocess_data(df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray, np.ndarra
     print("PREPROCESSING DATA")
     print("=" * 70)
     
-    # Define features and target (now includes Efficiency)
-    feature_cols = ['Voltage', 'Current', 'Temperature', 'Light_Intensity', 'Efficiency']
+    # Define features and target (now includes 8 features)
+    feature_cols = ['Voltage', 'Current', 'Temperature', 'Light_Intensity', 
+                    'Humidity', 'ThermistorTemp', 'RelayStatus', 'Efficiency']
     target_col = 'Fault_Status'
     
     X = df[feature_cols].values
@@ -358,22 +359,28 @@ def test_single_prediction(model: RandomForestClassifier, scaler: StandardScaler
     # Test cases representing each fault type (now includes Efficiency)
     test_cases = [
         {'Voltage': 20.0, 'Current': 5.0, 'Temperature': 35, 'Light_Intensity': 1000, 
+         'Humidity': 45.0, 'ThermistorTemp': 42.0, 'RelayStatus': 0,
          'Efficiency': 18.0, 'Expected': 'Normal'},
         {'Voltage': 12.0, 'Current': 2.5, 'Temperature': 45, 'Light_Intensity': 300, 
+         'Humidity': 55.0, 'ThermistorTemp': 38.0, 'RelayStatus': 0,
          'Efficiency': 8.0, 'Expected': 'Partial_Shading'},
         {'Voltage': 16.5, 'Current': 4.0, 'Temperature': 45, 'Light_Intensity': 550, 
+         'Humidity': 35.0, 'ThermistorTemp': 60.0, 'RelayStatus': 0,
          'Efficiency': 13.0, 'Expected': 'Dust_Accumulation'},
         {'Voltage': 22.0, 'Current': 0.05, 'Temperature': 30, 'Light_Intensity': 900, 
+         'Humidity': 50.0, 'ThermistorTemp': 33.0, 'RelayStatus': 1,
          'Efficiency': 1.0, 'Expected': 'Open_Circuit'},
         {'Voltage': 1.5, 'Current': 8.0, 'Temperature': 70, 'Light_Intensity': 800, 
+         'Humidity': 72.0, 'ThermistorTemp': 85.0, 'RelayStatus': 1,
          'Efficiency': 1.5, 'Expected': 'Short_Circuit'},
     ]
     
     for i, test in enumerate(test_cases):
-        # Prepare input (now includes Efficiency)
+        # Prepare input (now includes 8 features)
         X_sample = np.array([[test['Voltage'], test['Current'], 
                               test['Temperature'], test['Light_Intensity'],
-                              test['Efficiency']]])
+                              test['Humidity'], test['ThermistorTemp'], 
+                              test['RelayStatus'], test['Efficiency']]])
         
         # Scale input
         X_scaled = scaler.transform(X_sample)
@@ -386,6 +393,7 @@ def test_single_prediction(model: RandomForestClassifier, scaler: StandardScaler
         print(f"\n📍 Test Case {i+1}:")
         print(f"   Input: V={test['Voltage']}V, I={test['Current']}A, "
               f"T={test['Temperature']}°C, Light={test['Light_Intensity']}lux")
+        print(f"          Humid={test['Humidity']}%, Therm={test['ThermistorTemp']}°C, Relay={test['RelayStatus']}")
         print(f"   Expected: {test['Expected']}")
         print(f"   Predicted: {predicted_label}")
         print(f"   Confidence: {max(proba)*100:.1f}%")
