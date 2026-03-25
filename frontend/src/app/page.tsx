@@ -557,6 +557,87 @@ export default function Home() {
   const [whatsappEnabled, setWhatsappEnabled] = useState(false)
   const [whatsappStatus, setWhatsappStatus] = useState<string>('')
 
+  // CSV Download state
+  const [csvDownloadStation, setCsvDownloadStation] = useState<number>(1)
+  const [csvDataType, setCsvDataType] = useState<'actual' | 'simulated'>('actual')
+  const [csvLoading, setCsvLoading] = useState(false)
+  const [csvStats, setCsvStats] = useState<{ file_size: string; row_count: number } | null>(null)
+  const [csvStatsLoading, setCsvStatsLoading] = useState(false)
+  const [csvLockedFiles, setCsvLockedFiles] = useState<Record<string, boolean> | null>(null)
+
+  // Fetch CSV locked status
+  const fetchCsvLockedStatus = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/csv/locked-status')
+      if (response.ok) {
+        const data = await response.json()
+        setCsvLockedFiles(data.status || {})
+      }
+    } catch (error) {
+      console.error('Failed to check CSV locked status:', error)
+    }
+  }, [])
+
+  // Fetch CSV file stats
+  const fetchCsvStats = useCallback(async (station: number, dataType: 'actual' | 'simulated') => {
+    setCsvStatsLoading(true)
+    try {
+      const response = await fetch(`http://localhost:8000/api/csv/stats/${station}?data_type=${dataType}`)
+      if (response.ok) {
+        const data = await response.json()
+        setCsvStats(data)
+      } else {
+        setCsvStats(null)
+      }
+    } catch (error) {
+      console.error('Failed to fetch CSV stats:', error)
+      setCsvStats(null)
+    } finally {
+      setCsvStatsLoading(false)
+    }
+  }, [])
+
+  // Download CSV file
+  const downloadCsv = useCallback(async () => {
+    setCsvLoading(true)
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/csv/export/${csvDownloadStation}?data_type=${csvDataType}`
+      )
+      if (!response.ok) throw new Error('Download failed')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `station${csvDownloadStation}_${csvDataType}_data.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('CSV download failed:', error)
+    } finally {
+      setCsvLoading(false)
+    }
+  }, [csvDownloadStation, csvDataType])
+
+  // Update CSV stats when station or data type changes
+  useEffect(() => {
+    fetchCsvStats(csvDownloadStation, csvDataType)
+  }, [csvDownloadStation, csvDataType, fetchCsvStats])
+
+  // Poll CSV locked status every 2 seconds when monitoring
+  useEffect(() => {
+    if (!isMonitoring) return
+
+    const interval = setInterval(() => {
+      fetchCsvLockedStatus()
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [isMonitoring, fetchCsvLockedStatus])
+
   // Reset data when mode or monitoring changes
   useEffect(() => {
     if (!isMonitoring) {
@@ -842,6 +923,38 @@ export default function Home() {
         >
           <StatusCard prediction={prediction} />
         </motion.div>
+
+        {/* CSV Locked Files Warning */}
+        {csvLockedFiles && Object.values(csvLockedFiles).some(locked => locked) && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30"
+          >
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-300 font-semibold">⚠️ CSV File Locked</p>
+                <p className="text-red-200/80 text-sm mt-1">
+                  Data logging is PAUSED. Your CSV file is open in Excel or another program.
+                </p>
+                <div className="mt-2 text-sm text-red-200/70 space-y-1">
+                  <p>🔒 Locked files:</p>
+                  <ul className="list-disc list-inside ml-1">
+                    {Object.entries(csvLockedFiles)
+                      .filter(([_, locked]) => locked)
+                      .map(([name, _]) => (
+                        <li key={name}>
+                          {name.replace('_', ' ').replace(/([0-9])/g, ' $1')}
+                        </li>
+                      ))}
+                  </ul>
+                  <p className="mt-2 font-medium">✅ Action: Close the CSV files in Excel/other programs to resume logging</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Gauges */}
@@ -1346,6 +1459,110 @@ export default function Home() {
                 <div className="text-xs text-amber-400/80 mt-2 p-2 rounded bg-amber-500/10 border border-amber-500/20">
                   ⚠️ First time? Open <a href="https://web.whatsapp.com" target="_blank" className="underline">web.whatsapp.com</a> and scan QR code with your phone!
                 </div>
+              </div>
+            </div>
+
+            {/* CSV Download */}
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download CSV Data
+              </h3>
+              <div className="space-y-4">
+                {/* Station Selector */}
+                <div>
+                  <label className="text-sm text-gray-400 block mb-2">Select Station</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[1, 2].map(station => (
+                      <button
+                        key={station}
+                        onClick={() => setCsvDownloadStation(station)}
+                        className={`p-3 rounded-lg font-medium transition ${
+                          csvDownloadStation === station
+                            ? 'bg-blue-500/30 border border-blue-500/50 text-blue-300'
+                            : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                        }`}
+                      >
+                        Station {station}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Data Type Selector */}
+                <div>
+                  <label className="text-sm text-gray-400 block mb-2">Data Type</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['actual', 'simulated'] as const).map(type => (
+                      <button
+                        key={type}
+                        onClick={() => setCsvDataType(type)}
+                        className={`p-3 rounded-lg font-medium transition text-sm ${
+                          csvDataType === type
+                            ? 'bg-green-500/30 border border-green-500/50 text-green-300'
+                            : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                        }`}
+                      >
+                        {type === 'actual' ? '📊 Hardware Data' : '🔄 Simulated Data'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* File Info */}
+                {csvStatsLoading ? (
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center text-gray-400 text-sm">
+                    Loading file info...
+                  </div>
+                ) : csvStats ? (
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">File Size</span>
+                        <span className="text-gray-300">{csvStats.file_size}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Total Records</span>
+                        <span className="text-blue-300 font-medium">{csvStats.row_count}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-center text-gray-500 text-sm">
+                    No data yet
+                  </div>
+                )}
+
+                {/* Download Button */}
+                <button
+                  onClick={downloadCsv}
+                  disabled={csvLoading || !csvStats || csvStats.row_count === 0}
+                  className={`w-full p-3 rounded-lg font-medium transition flex items-center justify-center gap-2 ${
+                    csvLoading || !csvStats || csvStats.row_count === 0
+                      ? 'bg-white/5 border border-white/10 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-500/20 border border-blue-500/50 text-blue-300 hover:bg-blue-500/30'
+                  }`}
+                >
+                  {csvLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download CSV
+                    </>
+                  )}
+                </button>
+
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  ✓ Downloads all {csvStats?.row_count || 0} records from selected station
+                </p>
               </div>
             </div>
           </div>

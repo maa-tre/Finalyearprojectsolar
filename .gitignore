@@ -52,8 +52,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
+# Build outputs & Logs
 *.log
+backend_log.txt
+
+# PyWhatKit Auto-Generated Files
+PyWhatKit_DB.txt
 
 # Model artifacts (uncommenting will exclude them from git)
 # models/*.joblib
@@ -62,5 +66,20 @@ yarn-error.log*
 # Environment variables
 .env
 .env.local
-# Training data
+
+# CSV Data Files (test/training data)
 data/*.csv
+training_data/*.csv
+*.csv
+
+# Temporary & Cache Files
+.cache/
+temp/
+tmp/
+cache/
+.parcel-cache/
+coverage/
+
+# OS Specific
+.code-workspace
+.env.production.local

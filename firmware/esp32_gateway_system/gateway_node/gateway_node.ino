@@ -1,9 +1,7 @@
 /*
  * Solar Panel Fault Detection - Gateway Node Firmware
- * 
  * ROLE: Receives data from multiple Sender Nodes via ESP-NOW and forwards it to the Backend via WiFi.
  * HARDWARE: ESP32 (No sensors required)
- * 
  * Based on: updatereciever.ino from myproject
  */
 
@@ -16,11 +14,8 @@
 #include <esp_wifi.h> 
 
 // --- Wi-Fi Credentials ---
-// Updating to your new network while keeping the "OLD/NEW" comment style if preferred
-const char* ssid     = "Acerhotspot";
-const char* password = "123456780";
-//const char* ssid     = "NCE Student";      // NEW Updated WiFi name
-//const char* password = "welcome@nce";      // UPDATED
+const char* ssid     = "OnePlus";
+const char* password = "aaaaaaaa";
 
 // --- Discovery Configuration (For Scanning Method) ---
 // This starts an AP so Senders can find the Gateway's channel
@@ -31,13 +26,12 @@ const char* GATEWAY_SOFTAP_SSID = "Solar_Panel_Gateway";
 const uint8_t FIXED_CHANNEL = 1; 
 
 // --- Backend Server URL ---
-// Using your NEW Flask IP
-const char* flaskServerUrl = "http://192.168.1.69:8000/api/gateway-data";
+const char* flaskServerUrl = "http://10.62.141.152:8000/api/gateway-data";
 
 // --- MAC Addresses of Sender Devices ---
-// UPDATE THESE MAC ADDRESSES IF HARDWARE CHANGES
-uint8_t sender1_mac[] = {0x5C, 0x01, 0x3B, 0x4C, 0xD3, 0x18}; 
-uint8_t sender2_mac[] = {0x10, 0x52, 0x1C, 0xA7, 0x54, 0x08}; 
+// CORRECTED: Updated to match your Sender device's actual MAC
+uint8_t sender1_mac[] = {0x30, 0x76, 0xF5, 0xF8, 0xDF, 0x4C}; 
+//uint8_t sender2_mac[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};  //  (not in use)
 
 // --- Data Structures ---
 // Must match Sender's structure exactly
@@ -101,6 +95,7 @@ void OnDataSent(const esp_now_send_info_t* send_info, esp_now_send_status_t stat
 void sendAggregatedDataToFlask() {
     if (WiFi.status() == WL_CONNECTED) {
         if (incomingDataMap.empty()) {
+            Serial.println("No data to send (map empty)");
             return;
         }
 
@@ -109,7 +104,6 @@ void sendAggregatedDataToFlask() {
         http.addHeader("Content-Type", "application/json");
 
         // Prepare JSON Payload
-        // Using DynamicJsonDocument for compatibility
         const int capacity = JSON_ARRAY_SIZE(incomingDataMap.size()) + incomingDataMap.size() * JSON_OBJECT_SIZE(10);
         DynamicJsonDocument jsonDoc(capacity);
         JsonArray records = jsonDoc.to<JsonArray>();
@@ -120,15 +114,15 @@ void sendAggregatedDataToFlask() {
             // Check for stale data
             if (millis() - senderData.lastReceivedTimestamp < senderTimeoutInterval) {
                 JsonObject record = records.createNestedObject();
-                record["senderId"]           = senderData.data.senderId;
-                record["ldrValue"]           = senderData.data.ldrValue;
-                record["dhtTemp"]            = senderData.data.dhtTemp;
-                record["humidity"]           = senderData.data.humidity;
-                record["thermistorTemp"]     = senderData.data.thermistorTemp;
-                record["voltage"]            = senderData.data.voltage;
-                record["current"]            = senderData.data.current; 
-                record["relayStatus"]        = senderData.data.relayStatus;
-                record["valid"]              = senderData.data.valid;
+                record["senderId"]             = senderData.data.senderId;
+                record["ldrValue"]             = senderData.data.ldrValue;
+                record["dhtTemp"]              = senderData.data.dhtTemp;
+                record["humidity"]             = senderData.data.humidity;
+                record["thermistorTemp"]       = senderData.data.thermistorTemp;
+                record["voltage"]              = senderData.data.voltage;
+                record["current"]              = senderData.data.current; 
+                record["relayStatus"]          = senderData.data.relayStatus;
+                record["valid"]                = senderData.data.valid;
                 record["gateway_timestamp_ms"] = millis();
             } else {
                 Serial.printf("Data from sender ID %d is stale.\n", senderId);
@@ -157,7 +151,7 @@ void sendAggregatedDataToFlask() {
         if (httpResponseCode > 0) {
             Serial.printf("HTTP Response code: %d\n", httpResponseCode);
             if (httpResponseCode == 200) {
-                 // Serial.println(http.getString());
+                Serial.println("Data sent successfully!");
             }
         } else {
             Serial.printf("Error code: %s\n", http.errorToString(httpResponseCode).c_str());

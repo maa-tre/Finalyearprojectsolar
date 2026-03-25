@@ -26,6 +26,7 @@ import serial
 import serial.tools.list_ports
 import os
 import threading
+import csv
 
 # pywhatkit for WhatsApp (uses WhatsApp Web)
 try:
@@ -145,6 +146,39 @@ class AppState:
         self.pending_commands: Dict[str, str] = {}
         self.commands_lock = threading.Lock()
         
+        # CSV Data Logging - ACTUAL HARDWARE DATA
+        self.csv_enabled = True
+        self.csv_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+        self.station_files: Dict[int, str] = {
+            1: os.path.join(self.csv_dir, 'station1.csv'),
+            2: os.path.join(self.csv_dir, 'station2.csv')
+        }
+        
+        # CSV Data Logging - SIMULATED DATA
+        self.simulated_station_files: Dict[int, str] = {
+            1: os.path.join(self.csv_dir, 'simulatedstation1.csv'),
+            2: os.path.join(self.csv_dir, 'simulatedstation2.csv')
+        }
+        
+        # Locks for both file types
+        self.csv_locks: Dict[int, threading.Lock] = {1: threading.Lock(), 2: threading.Lock()}
+        self.simulated_csv_locks: Dict[int, threading.Lock] = {1: threading.Lock(), 2: threading.Lock()}
+        
+        # Track locked files to report to user
+        self.locked_files: Dict[str, bool] = {
+            'station1': False,
+            'station2': False,
+            'simulated_station1': False,
+            'simulated_station2': False
+        }
+        
+        self.csv_fieldnames = [
+            'timestamp', 'sender_id', 
+            'voltage', 'current', 'temperature', 'light_intensity', 
+            'humidity', 'thermistor_temp', 'efficiency', 'relay_status',
+            'fault_type', 'fault_index', 'confidence', 'is_fault', 'power', 'recommendation'
+        ]
+        
     def load_model(self):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         models_dir = os.path.join(base_dir, 'models')
@@ -158,6 +192,114 @@ class AppState:
         except Exception as e:
             print(f"❌ Failed to load model: {e}")
             self.model_loaded = False
+    
+    def initialize_csv(self, station_id: int = 1):
+        """Create CSV files with headers if they don't exist (both actual and simulated)."""
+        # Initialize actual station file
+        csv_file = self.station_files.get(station_id)
+        print(f"\n📁 Initializing CSV for Station {station_id}")
+        print(f"   Actual file path: {csv_file}")
+        print(f"   File exists: {os.path.exists(csv_file) if csv_file else 'N/A'}")
+        
+        if csv_file and not os.path.exists(csv_file):
+            try:
+                # Use utf-8 encoding to support emoji characters
+                with open(csv_file, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                    writer.writeheader()
+                print(f"   ✅ ACTUAL CSV created with header: {csv_file}")
+            except Exception as e:
+                print(f"   ❌ Failed to initialize actual CSV: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print(f"   ℹ️  ACTUAL CSV already exists (not reinitializing)")
+        
+        # Initialize simulated station file
+        sim_file = self.simulated_station_files.get(station_id)
+        print(f"   Simulated file path: {sim_file}")
+        print(f"   File exists: {os.path.exists(sim_file) if sim_file else 'N/A'}")
+        
+        if sim_file and not os.path.exists(sim_file):
+            try:
+                # Use utf-8 encoding to support emoji characters
+                with open(sim_file, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                    writer.writeheader()
+                print(f"   ✅ SIMULATED CSV created with header: {sim_file}")
+            except Exception as e:
+                print(f"   ❌ Failed to initialize simulated CSV: {e}")
+                import traceback
+                traceback.print_exc()
+        else:
+            print(f"   ℹ️  SIMULATED CSV already exists (not reinitializing)")
+        
+        print(f"   CSV Directory: {self.csv_dir}")
+        print(f"   CSV Enabled: {self.csv_enabled}")
+    
+    def save_to_csv(self, station_id: int, record: dict, is_simulated: bool = False):
+        """Thread-safe append to CSV file with retry logic for file locking (Windows issue when file is open in Excel)."""
+        import time
+        
+        if not self.csv_enabled:
+            return
+        
+        if is_simulated:
+            csv_file = self.simulated_station_files.get(station_id)
+            lock = self.simulated_csv_locks.get(station_id)
+            file_label = f"SIMULATED STATION {station_id}"
+            lock_key = f'simulated_station{station_id}'
+        else:
+            csv_file = self.station_files.get(station_id)
+            lock = self.csv_locks.get(station_id)
+            file_label = f"ACTUAL STATION {station_id}"
+            lock_key = f'station{station_id}'
+        
+        if not csv_file or not lock:
+            return
+        
+        # Retry logic: Try 3 times with exponential backoff
+        max_retries = 3
+        retry_count = 0
+        success = False
+        
+        while retry_count < max_retries and not success:
+            try:
+                with lock:
+                    # IMPORTANT: Use utf-8 encoding to support emoji characters in recommendations
+                    with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+                        writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                        writer.writerow(record)
+                
+                # Success
+                fault_type = record.get('fault_type', 'Unknown')
+                print(f"✅ CSV SAVED ({file_label}): {fault_type} @ {record.get('timestamp', 'N/A')[:19]}")
+                self.locked_files[lock_key] = False  # Clear locked status
+                success = True
+                
+            except PermissionError as e:
+                # File is locked (likely open in Excel)
+                retry_count += 1
+                self.locked_files[lock_key] = True  # Mark as locked
+                
+                if retry_count < max_retries:
+                    # Exponential backoff: 50ms, 100ms, 200ms
+                    wait_time = (50 * (2 ** (retry_count - 1))) / 1000
+                    print(f"⚠️  File locked (attempt {retry_count}/{max_retries}): {lock_key}")
+                    print(f"   Likely cause: File is open in Excel or another program")
+                    print(f"   Retrying in {wait_time*1000:.0f}ms...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"❌ CSV FAILED ({file_label}): File is LOCKED - Close CSV file in Excel/other programs!")
+                    print(f"   Data NOT saved: {record.get('fault_type', 'Unknown')}")
+                    
+            except Exception as e:
+                # Other unexpected errors
+                self.locked_files[lock_key] = False
+                print(f"❌ CSV FAILED ({file_label}): {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
+                break
 
 state = AppState()
 
@@ -167,6 +309,9 @@ state = AppState()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     state.load_model()
+    # Initialize CSV files for each station (both actual and simulated)
+    for station_id in [1, 2]:
+        state.initialize_csv(station_id)
     yield
     if state.serial_connection:
         state.serial_connection.close()
@@ -426,13 +571,65 @@ async def get_status():
 
 @app.post("/api/predict")
 async def predict(data: SensorData):
-    return predict_fault(data)
+    print(f"\n📊 /api/predict called - Voltage: {data.voltage}V, Current: {data.current}A")
+    prediction = predict_fault(data)
+    print(f"   Prediction: {prediction.fault_type} (confidence: {prediction.confidence}%)")
+    
+    # IMPORTANT: /api/predict saves to ACTUAL station CSV, not simulated
+    # This is for user-provided sensor data or manual testing
+    # Only /api/simulate endpoint saves to simulated CSV
+    
+    csv_record = {
+        'timestamp': datetime.now().isoformat(),
+        'sender_id': 1,  # Default to station 1 for manual predictions
+        'voltage': data.voltage,
+        'current': data.current,
+        'temperature': data.temperature,
+        'light_intensity': data.light_intensity,
+        'humidity': data.humidity,
+        'thermistor_temp': data.thermistor_temp,
+        'efficiency': data.efficiency,
+        'relay_status': data.relay_status,
+        'fault_type': prediction.fault_type,
+        'fault_index': prediction.fault_index,
+        'confidence': prediction.confidence,
+        'is_fault': prediction.is_fault,
+        'power': prediction.power,
+        'recommendation': prediction.recommendation
+    }
+    print(f"   Saving to ACTUAL station1.csv...")
+    # Always save to ACTUAL station CSV
+    state.save_to_csv(1, csv_record, is_simulated=False)
+    
+    return prediction
 
 @app.get("/api/simulate")
-async def get_simulated_data(fault_type: int = 0):
+async def get_simulated_data(fault_type: int = 0, station_id: int = 1):
     data = generate_simulated_data(fault_type)
     sensor_data = SensorData(**data)
     prediction = predict_fault(sensor_data)
+    
+    # Save simulated data to CSV
+    csv_record = {
+        'timestamp': datetime.now().isoformat(),
+        'sender_id': station_id,
+        'voltage': sensor_data.voltage,
+        'current': sensor_data.current,
+        'temperature': sensor_data.temperature,
+        'light_intensity': sensor_data.light_intensity,
+        'humidity': sensor_data.humidity,
+        'thermistor_temp': sensor_data.thermistor_temp,
+        'efficiency': sensor_data.efficiency,
+        'relay_status': sensor_data.relay_status,
+        'fault_type': prediction.fault_type,
+        'fault_index': prediction.fault_index,
+        'confidence': prediction.confidence,
+        'is_fault': prediction.is_fault,
+        'power': prediction.power,
+        'recommendation': prediction.recommendation
+    }
+    state.save_to_csv(station_id, csv_record, is_simulated=True)
+    
     return {"sensor_data": data, "prediction": prediction}
 
 @app.post("/api/set-simulation-mode")
@@ -448,10 +645,14 @@ async def receive_gateway_data(records: List[GatewayRecord]):
     Endpoint to receive aggregated data from ESP32 Gateway.
     Processes multiple records, runs ML predictions, and broadcasts via WebSocket.
     """
+    print(f"\n🌐 /api/gateway-data called with {len(records)} records")
     processed_count = 0
     
     for record in records:
+        print(f"   Processing record: Sender {record.senderId}, Valid: {record.valid}")
+        
         if not record.valid:
+            print(f"   ⏭️ Skipping invalid record")
             continue
             
         # Convert to standard SensorData
@@ -471,6 +672,27 @@ async def receive_gateway_data(records: List[GatewayRecord]):
         
         # Run Prediction
         prediction = predict_fault(sensor_data)
+        
+        # Save to CSV - ACTUAL HARDWARE DATA (not simulated)
+        csv_record = {
+            'timestamp': datetime.now().isoformat(),
+            'sender_id': record.senderId,
+            'voltage': sensor_data.voltage,
+            'current': sensor_data.current,
+            'temperature': sensor_data.temperature,
+            'light_intensity': sensor_data.light_intensity,
+            'humidity': sensor_data.humidity,
+            'thermistor_temp': sensor_data.thermistor_temp,
+            'efficiency': sensor_data.efficiency,
+            'relay_status': sensor_data.relay_status,
+            'fault_type': prediction.fault_type,
+            'fault_index': prediction.fault_index,
+            'confidence': prediction.confidence,
+            'is_fault': prediction.is_fault,
+            'power': prediction.power,
+            'recommendation': prediction.recommendation
+        }
+        state.save_to_csv(record.senderId, csv_record, is_simulated=False)
         
         # Send WhatsApp if fault detected (and enabled)
         if prediction.is_fault:
@@ -832,6 +1054,10 @@ async def websocket_endpoint(websocket: WebSocket):
                         
                         prediction = predict_fault(SensorData(**sensor_data))
                         
+                        # NOTE: Simulated data is NOT automatically saved here.
+                        # It's only saved when explicitly requested via /api/simulate endpoint.
+                        # This prevents auto-filling CSV files in demo/test mode.
+                        
                         # Send WhatsApp if fault detected (limited to last notified logic)
                         if prediction.is_fault:
                             await send_whatsapp_notification(prediction.fault_type, sensor_data, is_simulator=True)
@@ -890,6 +1116,130 @@ def read_serial_data() -> dict:
         pass
     
     return generate_simulated_data(0)
+
+# =============================================================================
+# CSV DATA LOGGING ENDPOINTS
+# =============================================================================
+
+@app.get("/api/csv/status")
+async def csv_status():
+    """Get CSV logging status for both actual and simulated data."""
+    return {
+        "csv_enabled": state.csv_enabled,
+        "csv_directory": state.csv_dir,
+        "actual_station_files": state.station_files,
+        "simulated_station_files": state.simulated_station_files,
+        "fieldnames": state.csv_fieldnames,
+        "note": "Data is continuously appended to station CSV files (actual: station{id}.csv, simulated: simulatedstation{id}.csv)"
+    }
+
+@app.get("/api/csv/locked-status")
+async def csv_locked_status():
+    """Check if any CSV files are currently locked (e.g., open in Excel)."""
+    locked_files = {k: v for k, v in state.locked_files.items() if v}
+    
+    response = {
+        "any_locked": len(locked_files) > 0,
+        "locked_files": locked_files,
+        "status": state.locked_files
+    }
+    
+    if locked_files:
+        response["warning"] = "Some CSV files are currently LOCKED. Close them in Excel/other programs to resume data logging."
+    
+    return response
+
+@app.post("/api/csv/toggle")
+async def toggle_csv_logging(enabled: bool):
+    """Enable or disable CSV logging."""
+    state.csv_enabled = enabled
+    status = "enabled" if enabled else "disabled"
+    return {
+        "status": "success",
+        "csv_logging": status,
+        "message": f"CSV logging {status}"
+    }
+
+@app.get("/api/csv/export/{station_id}")
+async def export_csv(station_id: int = 1, data_type: str = "actual"):
+    """Download CSV file for a specific station (actual or simulated data)."""
+    if data_type == "simulated":
+        csv_file = state.simulated_station_files.get(station_id)
+        filename = f"simulatedstation{station_id}.csv"
+    else:
+        csv_file = state.station_files.get(station_id)
+        filename = f"station{station_id}.csv"
+    
+    if not csv_file or not os.path.exists(csv_file):
+        raise HTTPException(status_code=404, detail=f"No {data_type} data file found for station {station_id}")
+    
+    return Response(
+        content=open(csv_file, 'rb').read(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@app.post("/api/csv/clear/{station_id}")
+async def clear_csv(station_id: int = 1, data_type: str = "actual"):
+    """Reset CSV file for a specific station (recreate with headers only)."""
+    if data_type == "simulated":
+        csv_file = state.simulated_station_files.get(station_id)
+        lock = state.simulated_csv_locks.get(station_id)
+    else:
+        csv_file = state.station_files.get(station_id)
+        lock = state.csv_locks.get(station_id)
+    
+    if not csv_file or not lock:
+        raise HTTPException(status_code=400, detail=f"Invalid station {station_id}")
+    
+    try:
+        with lock:
+            with open(csv_file, 'w', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=state.csv_fieldnames)
+                writer.writeheader()
+        return {
+            "status": "success",
+            "message": f"CSV file cleared for {data_type} data - station {station_id}",
+            "file": csv_file,
+            "data_type": data_type
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear CSV: {e}")
+
+@app.get("/api/csv/stats/{station_id}")
+async def csv_stats(station_id: int = 1, data_type: str = "actual"):
+    """Get statistics about the CSV file for a station (actual or simulated data)."""
+    if data_type == "simulated":
+        csv_file = state.simulated_station_files.get(station_id)
+    else:
+        csv_file = state.station_files.get(station_id)
+    
+    if not csv_file or not os.path.exists(csv_file):
+        return {
+            "station_id": station_id,
+            "data_type": data_type,
+            "file_exists": False,
+            "message": f"No {data_type} data recorded yet"
+        }
+    
+    try:
+        file_size_bytes = os.path.getsize(csv_file)
+        row_count = 0
+        with open(csv_file, 'r') as f:
+            row_count = sum(1 for _ in f) - 1  # Subtract header
+        
+        return {
+            "station_id": station_id,
+            "data_type": data_type,
+            "file_exists": True,
+            "file_path": csv_file,
+            "file_size_bytes": file_size_bytes,
+            "row_count": row_count,
+            "file_size_mb": round(file_size_bytes / (1024 * 1024), 2),
+            "message": f"Station {station_id} ({data_type}) has {row_count} sensor records"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {e}")
 
 # =============================================================================
 # RUN SERVER
