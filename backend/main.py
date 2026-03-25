@@ -194,45 +194,87 @@ class AppState:
             self.model_loaded = False
     
     def initialize_csv(self, station_id: int = 1):
-        """Create CSV files with headers if they don't exist (both actual and simulated)."""
+        """Create CSV files with headers if they don't exist, or add headers to existing files without them."""
         # Initialize actual station file
         csv_file = self.station_files.get(station_id)
         print(f"\n📁 Initializing CSV for Station {station_id}")
         print(f"   Actual file path: {csv_file}")
         print(f"   File exists: {os.path.exists(csv_file) if csv_file else 'N/A'}")
         
-        if csv_file and not os.path.exists(csv_file):
+        if csv_file:
             try:
-                # Use utf-8 encoding to support emoji characters
-                with open(csv_file, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
-                    writer.writeheader()
-                print(f"   ✅ ACTUAL CSV created with header: {csv_file}")
+                # Check if file exists and has content
+                if not os.path.exists(csv_file) or os.path.getsize(csv_file) == 0:
+                    # Create new file with headers
+                    with open(csv_file, 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                        writer.writeheader()
+                    print(f"   ✅ ACTUAL CSV created with header: {csv_file}")
+                else:
+                    # File exists - check if it has headers
+                    with open(csv_file, 'r', encoding='utf-8') as f:
+                        first_line = f.readline().strip()
+                    
+                    # Check if first line is a header (contains expected column names)
+                    if 'timestamp' not in first_line:
+                        print(f"   ⚠️  File exists but HAS NO HEADERS - Adding headers...")
+                        # Read existing data
+                        with open(csv_file, 'r', encoding='utf-8') as f:
+                            data = f.readlines()
+                        
+                        # Write with headers
+                        with open(csv_file, 'w', newline='', encoding='utf-8') as f:
+                            writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                            writer.writeheader()
+                            # Append existing data back
+                            f.writelines(data)
+                        print(f"   ✅ Headers added to ACTUAL CSV")
+                    else:
+                        print(f"   ✅ ACTUAL CSV already has headers")
             except Exception as e:
                 print(f"   ❌ Failed to initialize actual CSV: {e}")
                 import traceback
                 traceback.print_exc()
-        else:
-            print(f"   ℹ️  ACTUAL CSV already exists (not reinitializing)")
         
         # Initialize simulated station file
         sim_file = self.simulated_station_files.get(station_id)
         print(f"   Simulated file path: {sim_file}")
         print(f"   File exists: {os.path.exists(sim_file) if sim_file else 'N/A'}")
         
-        if sim_file and not os.path.exists(sim_file):
+        if sim_file:
             try:
-                # Use utf-8 encoding to support emoji characters
-                with open(sim_file, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
-                    writer.writeheader()
-                print(f"   ✅ SIMULATED CSV created with header: {sim_file}")
+                # Check if file exists and has content
+                if not os.path.exists(sim_file) or os.path.getsize(sim_file) == 0:
+                    # Create new file with headers
+                    with open(sim_file, 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                        writer.writeheader()
+                    print(f"   ✅ SIMULATED CSV created with header: {sim_file}")
+                else:
+                    # File exists - check if it has headers
+                    with open(sim_file, 'r', encoding='utf-8') as f:
+                        first_line = f.readline().strip()
+                    
+                    # Check if first line is a header
+                    if 'timestamp' not in first_line:
+                        print(f"   ⚠️  File exists but HAS NO HEADERS - Adding headers...")
+                        # Read existing data
+                        with open(sim_file, 'r', encoding='utf-8') as f:
+                            data = f.readlines()
+                        
+                        # Write with headers
+                        with open(sim_file, 'w', newline='', encoding='utf-8') as f:
+                            writer = csv.DictWriter(f, fieldnames=self.csv_fieldnames)
+                            writer.writeheader()
+                            # Append existing data back
+                            f.writelines(data)
+                        print(f"   ✅ Headers added to SIMULATED CSV")
+                    else:
+                        print(f"   ✅ SIMULATED CSV already has headers")
             except Exception as e:
                 print(f"   ❌ Failed to initialize simulated CSV: {e}")
                 import traceback
                 traceback.print_exc()
-        else:
-            print(f"   ℹ️  SIMULATED CSV already exists (not reinitializing)")
         
         print(f"   CSV Directory: {self.csv_dir}")
         print(f"   CSV Enabled: {self.csv_enabled}")
@@ -1042,6 +1084,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Send data if monitoring
             if state.is_monitoring:
                 if state.connection_mode == "simulator":
+                    # ✅ SIMULATOR MODE - Save to simulated CSV
                     # Broadcast for both Station 1 and Station 2
                     for station_id in [1, 2]:
                         sensor_data = generate_simulated_data(state.simulation_fault_type)
@@ -1054,9 +1097,27 @@ async def websocket_endpoint(websocket: WebSocket):
                         
                         prediction = predict_fault(SensorData(**sensor_data))
                         
-                        # NOTE: Simulated data is NOT automatically saved here.
-                        # It's only saved when explicitly requested via /api/simulate endpoint.
-                        # This prevents auto-filling CSV files in demo/test mode.
+                        # Save ONLY when simulator mode is active
+                        if state.connection_mode == "simulator":
+                            csv_record = {
+                                'timestamp': datetime.now().isoformat(),
+                                'sender_id': station_id,
+                                'voltage': sensor_data['voltage'],
+                                'current': sensor_data['current'],
+                                'temperature': sensor_data['temperature'],
+                                'light_intensity': sensor_data['light_intensity'],
+                                'humidity': sensor_data['humidity'],
+                                'thermistor_temp': sensor_data['thermistor_temp'],
+                                'efficiency': sensor_data['efficiency'],
+                                'relay_status': sensor_data['relay_status'],
+                                'fault_type': prediction.fault_type,
+                                'fault_index': prediction.fault_index,
+                                'confidence': prediction.confidence,
+                                'is_fault': prediction.is_fault,
+                                'power': prediction.power,
+                                'recommendation': prediction.recommendation
+                            }
+                            state.save_to_csv(station_id, csv_record, is_simulated=True)
                         
                         # Send WhatsApp if fault detected (limited to last notified logic)
                         if prediction.is_fault:
@@ -1071,6 +1132,8 @@ async def websocket_endpoint(websocket: WebSocket):
                             "prediction": prediction.model_dump()
                         })
                 elif state.connection_mode == "serial" and state.serial_connection:
+                    # ✅ SERIAL/USB MODE - Data saved via /api/gateway-data (not here)
+                    # WebSocket only broadcasts, does NOT save to CSV
                     sensor_data = read_serial_data()
                     # Ensure current and voltage are always non-negative
                     sensor_data["current"] = max(0, sensor_data.get("current", 0))
@@ -1082,8 +1145,16 @@ async def websocket_endpoint(websocket: WebSocket):
                         "sensor_data": sensor_data,
                         "prediction": prediction.model_dump()
                     })
+                elif state.connection_mode == "wifi":
+                    # ✅ WiFi MODE - Data saved via /api/gateway-data (not here)
+                    # WebSocket only broadcasts real-time data, CSV is saved from gateway endpoint
+                    pass  # Data comes from ESP32 via /api/gateway-data endpoint
             
-            await asyncio.sleep(0.5)  # 2 updates per second
+            # Adjust refresh rate based on connection mode
+            if state.connection_mode == "simulator":
+                await asyncio.sleep(2.0)  # Slow: 1 update per 2 seconds for simulator
+            else:
+                await asyncio.sleep(0.5)  # Fast: 2 updates per second for hardware modes
             
     except WebSocketDisconnect:
         state.connected_clients.remove(websocket)
