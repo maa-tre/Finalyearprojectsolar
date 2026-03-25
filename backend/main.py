@@ -149,8 +149,19 @@ class AppState:
         # CSV Data Logging - ACTUAL HARDWARE DATA
         self.csv_enabled = True
         self.csv_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+        
         # Ensure data directory exists
-        os.makedirs(self.csv_dir, exist_ok=True)
+        try:
+            os.makedirs(self.csv_dir, exist_ok=True)
+            # Verify we have write permissions
+            if not os.access(self.csv_dir, os.W_OK):
+                raise PermissionError(f"No write permissions for {self.csv_dir}")
+            print(f"✅ Data directory ready: {self.csv_dir}")
+        except Exception as e:
+            print(f"❌ CRITICAL: Cannot create/access data directory: {e}")
+            print(f"   CSV logging will be DISABLED")
+            self.csv_enabled = False
+        
         self.station_files: Dict[int, str] = {
             1: os.path.join(self.csv_dir, 'station1.csv'),
             2: os.path.join(self.csv_dir, 'station2.csv')
@@ -1197,9 +1208,13 @@ def read_serial_data() -> dict:
 @app.get("/api/csv/status")
 async def csv_status():
     """Get CSV logging status for both actual and simulated data."""
+    status_msg = "✅ CSV Logging ENABLED - Data is being saved" if state.csv_enabled else "❌ CSV Logging DISABLED - Data directory not accessible"
     return {
         "csv_enabled": state.csv_enabled,
+        "status": status_msg,
         "csv_directory": state.csv_dir,
+        "directory_exists": os.path.exists(state.csv_dir),
+        "directory_writable": os.access(state.csv_dir, os.W_OK) if os.path.exists(state.csv_dir) else False,
         "actual_station_files": state.station_files,
         "simulated_station_files": state.simulated_station_files,
         "fieldnames": state.csv_fieldnames,
