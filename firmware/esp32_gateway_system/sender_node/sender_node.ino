@@ -13,7 +13,7 @@ const int SENDER_ID = 1;
 
 // --- Wi-Fi & ESP-NOW Configuration ---
 // MAC Address of the Central Gateway (Receiver)
-uint8_t centralNodeAddress[] = {0x88, 0x57, 0x21, 0x8E, 0xC2, 0xBC}; 
+uint8_t centralNodeAddress[] = {0x10, 0x52, 0x1C, 0xA7, 0x54, 0x08}; 
 const uint8_t DEFAULT_WIFI_CHANNEL = 1;
 
 // --- SSID Scanning Configuration (Discovery Method) ---
@@ -27,7 +27,7 @@ const char* GATEWAY_SSID = "Solar_Panel_Gateway";
 #define THERMISTOR_PIN       32
 #define VOLTAGE_SENSOR_PIN   35
 #define CURRENT_SENSOR_PIN   34
-#define RELAY_PIN            13 // Active LOW Relay (Software treats HIGH as Active)
+#define RELAY_PIN            13 // Active LOW Relay (HIGH = OFF, LOW = Triggered)
 
 // --- Thermistor Constants ---
 const float VIN_MV                   = 3240.0; // Your 3.24V measurement
@@ -36,15 +36,28 @@ const float BETA                     = 3950.0;
 const float R_NOMINAL                = 10000.0;
 const float TEMP_OFFSET              = 0.0;    
 
-// --- EMPIRICAL CALIBRATION CONSTANTS FOR CURRENT SENSOR ---
-const float V_PIN_ZERO       = 1.490;   
-const float REAL_SENSITIVITY = 0.1755;  
-const float ESP_VREF         = 3.3;     
-const float ESP32_ADC_MAX    = 4095.0;  
+// --- VOLTAGE SENSOR CALIBRATION (Regression) ---
+float smoothedVoltageAdc = 0;
+const float voltageSmoothing = 0.9;  // Faster settling time (90% new data, 10% old)
 
-// --- Voltage Sensor Calibration ---
-const float VOLTAGE_CALIBRATION_FACTOR   = 1.00; // Increase slightly if reading is too low
-const float VOLTAGE_CALIBRATION_OFFSET_V = 0.0;
+float voltageCal[][2] = {
+  { 0.0,    0.00 },
+  { 100.0,  1.80 },
+  { 190.0,  2.44 },
+  { 676.0,  6.00 },
+  { 1645.0, 12.80 },
+  { 2065.0, 15.80 },
+  { 2336.0, 17.80 },
+  { 2719.0, 20.03 },
+  { 3000.0, 25.00 }
+};
+const int numVoltagePoints = sizeof(voltageCal) / sizeof(voltageCal[0]);
+
+// --- CURRENT SENSOR CALIBRATION (ACS712-5A) ---
+const float V_PIN_ZERO       = 1.563;   
+const float REAL_SENSITIVITY = 0.125;  
+const float ESP_VREF         = 3.3;     
+const float ESP32_ADC_MAX    = 4095.0;
 
 // --- General Measurement Constants ---
 const int NUM_ADC_READINGS_AVG = 50;
@@ -75,6 +88,20 @@ typedef struct struct_message {
 struct_message myData;
 esp_now_peer_info_t peerInfo;
 
+// --- Voltage Regression Function ---
+float getRegressedVoltage(float adc) {
+    if (adc <= voltageCal[0][0]) return voltageCal[0][1];
+    if (adc >= voltageCal[numVoltagePoints-1][0]) return voltageCal[numVoltagePoints-1][1];
+    
+    for (int i = 0; i < numVoltagePoints - 1; i++) {
+        if (adc >= voltageCal[i][0] && adc <= voltageCal[i+1][0]) {
+            return voltageCal[i][1] + (adc - voltageCal[i][0]) * (voltageCal[i+1][1] - voltageCal[i][1]) / 
+                   (voltageCal[i+1][0] - voltageCal[i][0]);
+        }
+    }
+    return 0;
+}
+
 // --- ESP-NOW Send Callback ---
 void OnDataSent(const esp_now_send_info_t* send_info, esp_now_send_status_t status) {
     Serial.print("Last Packet Send Status to ");
@@ -94,9 +121,9 @@ void OnDataRecv(const esp_now_recv_info *recv_info, const uint8_t *incomingData,
     Serial.printf("[RELAY CMD] Received: '%s'\n", received_cmd.command);
 
     if (strcmp(received_cmd.command, "ACTIVATE_RELAY") == 0) {
-        digitalWrite(RELAY_PIN, HIGH);
+        digitalWrite(RELAY_PIN, LOW);  // Pull LOW to trigger relay
     } else if (strcmp(received_cmd.command, "DEACTIVATE_RELAY") == 0) {
-        digitalWrite(RELAY_PIN, LOW);
+        digitalWrite(RELAY_PIN, HIGH);  // Pull HIGH to deactivate
     } else if (strcmp(received_cmd.command, "TOGGLE_RELAY") == 0) {
         digitalWrite(RELAY_PIN, !digitalRead(RELAY_PIN));
     }
@@ -127,10 +154,11 @@ void setup() {
 
     // Initialize Relay Pin
     pinMode(RELAY_PIN, OUTPUT);
-    digitalWrite(RELAY_PIN, LOW); 
+    digitalWrite(RELAY_PIN, HIGH);  // Default HIGH (relay not cut off) 
     
     // Initialize sensors
     dht.begin();
+    smoothedVoltageAdc = analogRead(VOLTAGE_SENSOR_PIN);
 
     // Wi-Fi & ESP-NOW setup
     WiFi.mode(WIFI_STA);
@@ -182,6 +210,11 @@ void loop() {
         // --- DHT22 ---
         myData.dhtTemp = dht.readTemperature();
         myData.humidity = dht.readHumidity();
+        
+        // Handle NaN values - set to 0.0 if read fails
+        if (isnan(myData.dhtTemp)) myData.dhtTemp = 0.0;
+        if (isnan(myData.humidity)) myData.humidity = 0.0;
+        
         Serial.printf("DHT Temp: %.2f C | Humidity: %.2f %%\n", myData.dhtTemp, myData.humidity);
 
         // --- Thermistor (Calibrated Logic) ---
@@ -204,44 +237,31 @@ void loop() {
         }
         Serial.printf("Thermistor Temp: %.2f C\n", myData.thermistorTemp);
 
-        // --- VOLTAGE SENSOR (DUAL-SCALE CALIBRATION) ---
-        int voltageRawADC = analogRead(VOLTAGE_SENSOR_PIN);
-        float voltageAtPinV = (voltageRawADC / ESP32_ADC_MAX) * ESP_VREF;
+        // --- VOLTAGE SENSOR (REGRESSION CALIBRATION) ---
+        long voltageSum = 0;
+        for(int i = 0; i < 100; i++) voltageSum += analogRead(VOLTAGE_SENSOR_PIN);
+        float voltageAvg = (float)voltageSum / 100.0;
+        smoothedVoltageAdc = (voltageAvg * voltageSmoothing) + (smoothedVoltageAdc * (1.0 - voltageSmoothing));
+        myData.voltage = getRegressedVoltage(smoothedVoltageAdc);
         
-        float baseVoltage = (voltageAtPinV * 5.0);
-        
-        if (baseVoltage < 1.0) {
-            // Low Voltage Mode: Maintain clean 0V floor
-            myData.voltage = baseVoltage * VOLTAGE_CALIBRATION_FACTOR;
-        } else {
-            // High Voltage Mode: Apply manual hardware compensation (+0.140V at pin)
-            myData.voltage = (voltageAtPinV + 0.140) * 5.0 * VOLTAGE_CALIBRATION_FACTOR;
-        }
-        myData.voltage += VOLTAGE_CALIBRATION_OFFSET_V;
-        
-        Serial.printf("Voltage: %.2f V (Pin V: %.3f)\n", myData.voltage, voltageAtPinV);
+        Serial.printf("Voltage: %.2f V\n", myData.voltage);
 
-        // --- CURRENT SENSOR (NEW EMPIRICAL LOGIC) ---
+        // --- CURRENT SENSOR (CALIBRATED LOGIC) ---
         long adcRawSum = 0;
         for(int i = 0; i < CURRENT_SENSOR_SAMPLES; i++) {
             adcRawSum += analogRead(CURRENT_SENSOR_PIN);
             delayMicroseconds(50);
         }
-        float avgADC = (float)adcRawSum / CURRENT_SENSOR_SAMPLES;
-        
-        // Calculate voltage seen at the ESP32 Pin
-        float voltageAtPin = (avgADC / ESP32_ADC_MAX) * ESP_VREF;
-        
-        // Calculate Current using Empirical Sensitivity
-        myData.current = (voltageAtPin - V_PIN_ZERO) / REAL_SENSITIVITY;
+        float currentAvgADC = (float)adcRawSum / CURRENT_SENSOR_SAMPLES;
+        float currentVoltageAtPin = (currentAvgADC / ESP32_ADC_MAX) * ESP_VREF;
+        myData.current = -1.0 * (currentVoltageAtPin - V_PIN_ZERO) / REAL_SENSITIVITY;
 
-        // Noise gate: ignore very small currents
-        if (abs(myData.current) < 0.03) myData.current = 0.00;
+        if (fabs(myData.current) < 0.03) myData.current = 0.00;
 
-        Serial.printf("Pin Voltage: %.3f V | Current: %.2f A\n", voltageAtPin, myData.current);
+        Serial.printf("Current: %.2f A\n", myData.current);
 
         // --- Send via ESP-NOW ---
-        myData.relayStatus = (digitalRead(RELAY_PIN) == HIGH);
+        myData.relayStatus = (digitalRead(RELAY_PIN) == LOW);  // LOW = Active/Triggered
         esp_err_t result = esp_now_send(centralNodeAddress, (uint8_t*)&myData, sizeof(myData));
         
         Serial.printf("Packet: %s | Relay: %s\n", 

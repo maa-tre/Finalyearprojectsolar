@@ -1,5 +1,5 @@
-fastapi>=0.100.0
-uvicorn>=0.23.0
+fastapi>=0.100.0,<1.0
+uvicorn[standard]>=0.23.0
 websockets>=11.0
 python-multipart>=0.0.6
 numpy>=1.21.0
@@ -9,3 +9,5 @@ joblib>=1.1.0
 pyserial>=3.5
 httpx>=0.24.0
 pydantic>=2.0.0
+pywhatkit>=7.5.5
+
