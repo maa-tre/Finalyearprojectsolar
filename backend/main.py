@@ -149,6 +149,8 @@ class AppState:
         # CSV Data Logging - ACTUAL HARDWARE DATA
         self.csv_enabled = True
         self.csv_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
+        # Ensure data directory exists
+        os.makedirs(self.csv_dir, exist_ok=True)
         self.station_files: Dict[int, str] = {
             1: os.path.join(self.csv_dir, 'station1.csv'),
             2: os.path.join(self.csv_dir, 'station2.csv')

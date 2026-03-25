@@ -106,6 +106,8 @@ If you have Python 3.8, please upgrade to 3.9+ from [python.org](https://www.pyt
 cd SolarPanelFaultDetection
 ```
 
+**Note**: The `data/` folder will be **automatically created** on first backend run. No manual setup needed for data storage.
+
 #### Step 3: Setup Backend (FastAPI Server)
 
 **Create & Activate Virtual Environment:**
@@ -352,10 +354,19 @@ npm run dev
 ```
 
 ### CSV data not saving
-1. Check if backend is running: `http://localhost:8000/api/csv/status`
-2. Check if files are locked on dashboard (red warning banner)
-3. Verify `data/` folder exists and has write permissions
-4. Check logs for errors
+1. **Data folder**: The `data/` folder is **automatically created** on first backend run if it doesn't exist
+2. Check if backend is running: `http://localhost:8000/api/csv/status`
+3. Check if files are locked on dashboard (red warning banner)
+4. Verify `data/` folder exists and has write permissions
+5. Check logs for errors
+
+**CSV Files Created**:
+- `station1.csv` - Hardware data from Station 1
+- `station2.csv` - Hardware data from Station 2
+- `simulatedstation1.csv` - Simulated data from Station 1
+- `simulatedstation2.csv` - Simulated data from Station 2
+
+See [data/README.md](data/README.md) for details about CSV structure and columns.
 
 ### No data streaming from ESP32
 1. Verify ESP32 is on same WiFi network
