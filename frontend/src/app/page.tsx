@@ -153,7 +153,6 @@ function StatusCard({ prediction }: { prediction: Prediction | null }) {
       className={`glass-card p-8 border-2 ${prediction.is_fault ? 'status-fault' : 'status-normal'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      key={prediction.fault_type}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -638,13 +637,13 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [isMonitoring, fetchCsvLockedStatus])
 
-  // Reset data when mode or monitoring changes
+  // Reset data when monitoring stops
   useEffect(() => {
     if (!isMonitoring) {
       setStationData({})
       setAvailableStations(new Set([1]))
     }
-  }, [connectionMode, isMonitoring])
+  }, [isMonitoring])
 
   // WebSocket connection and Stale Data Handling
   useEffect(() => {
@@ -652,7 +651,7 @@ export default function Home() {
 
     const ws = new WebSocket('ws://localhost:8000/ws')
 
-    // Interval to check for stale data (Timeout: 5s)
+    // Interval to check for stale data (Timeout: 15s to prevent flickering on slow connections)
     const staleCheck = setInterval(() => {
       setStationData(prev => {
         const now = new Date().getTime()
@@ -662,7 +661,7 @@ export default function Home() {
         Object.keys(updatedState).forEach(id => {
           const sId = parseInt(id)
           const lastUpdate = updatedState[sId]?.lastUpdate?.getTime() || 0
-          if (now - lastUpdate > 5000 && updatedState[sId].sensorData !== null) {
+          if (now - lastUpdate > 15000 && updatedState[sId].sensorData !== null) {
             updatedState[sId] = { ...updatedState[sId], sensorData: null, prediction: null }
             changed = true
           }
@@ -791,7 +790,7 @@ export default function Home() {
       }
       ws.close()
     }
-  }, [isMonitoring, connectionMode])
+  }, [isMonitoring])
 
   // Update simulation fault type
   useEffect(() => {
@@ -1179,7 +1178,7 @@ export default function Home() {
                 }}
               >
                 <p className="text-xs text-gray-400 mb-2">
-                  Pin Status: GPIO {selectedStation === 1 ? '13' : selectedStation === 2 ? '2' : '?'}
+                  Pin Status: GPIO {selectedStation === 1 ? '22' : selectedStation === 2 ? '2' : '?'}
                 </p>
                 <div className={`text-3xl font-black tracking-wide transition-all ${sensorData?.relay_status 
                   ? 'text-yellow-400 drop-shadow-lg drop-shadow-yellow-500/50' 
@@ -1191,7 +1190,7 @@ export default function Home() {
                   {sensorData?.relay_status ? 'Pin pulled LOW (Active)' : 'Pin released HIGH (Inactive)'}
                 </p>
                 <p className="text-[9px] text-gray-600 mt-2">
-                  {selectedStation === 1 ? 'Station 1 (sender_node)' : selectedStation === 2 ? 'Station 2 (sender_node_A)' : 'Unknown Station'}
+                  {selectedStation === 1 ? 'Station 1 (GPIO 22 relay)' : selectedStation === 2 ? 'Station 2 (GPIO 2 relay)' : 'Unknown Station'}
                 </p>
               </motion.div>
 
@@ -1279,7 +1278,7 @@ export default function Home() {
                     lastRelayCommand.status === 'idle' ? 'text-gray-400' :
                     'text-green-300'
                   }`}>{lastRelayCommand.status}</span></div>
-                  <div>Station: <span className="text-purple-300">S{lastRelayCommand.station} (GPIO {selectedStation === 1 ? '13' : '2'})</span></div>
+                  <div>Station: <span className="text-purple-300">S{lastRelayCommand.station} (GPIO {selectedStation === 1 ? '22' : '2'})</span></div>
                 </div>
               </div>
 

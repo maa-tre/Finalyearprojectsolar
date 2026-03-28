@@ -14,8 +14,8 @@
 #include <esp_wifi.h> 
 
 // --- Wi-Fi Credentials ---
-const char* ssid     = "OnePlus";
-const char* password = "aaaaaaaa";
+const char* ssid     = "Maa Kali Boys hostel";
+const char* password = "Maakali@098";
 
 // --- Discovery Configuration (For Scanning Method) ---
 // This starts an AP so Senders can find the Gateway's channel
@@ -26,16 +26,17 @@ const char* GATEWAY_SOFTAP_SSID = "Solar_Panel_Gateway";
 const uint8_t FIXED_CHANNEL = 1; 
 
 // --- Backend Server URL ---
-const char* flaskServerUrl = "http://10.62.141.152:8000/api/gateway-data";
+const char* flaskServerUrl = "http://192.168.1.69:8000/api/gateway-data";
 
 // --- MAC Addresses of Sender Devices ---
 // CORRECTED: Updated to match your Sender device's actual MAC
-uint8_t sender1_mac[] = {0x30, 0x76, 0xF5, 0xF8, 0xDF, 0x4C}; 
-//uint8_t sender2_mac[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};  //  (not in use)
+uint8_t sender1_mac[] = {0x30, 0x76, 0xF5, 0x94, 0x71, 0xF8};  // ACTUAL MAC from device
+uint8_t sender2_mac[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};  // (not in use)
 
 // --- Data Structures ---
 // Must match Sender's structure exactly
 typedef struct struct_message {
+    uint8_t msg_type;        // 0 = sensor data
     int   senderId;
     int   ldrValue;
     float dhtTemp;
@@ -50,6 +51,15 @@ typedef struct struct_message {
 typedef struct struct_command {
     char command[32]; 
 } struct_command;
+
+// --- Acknowledgment Structure (for relay feedback) ---
+typedef struct struct_ack {
+    uint8_t msg_type;        // 1 = ACK, 0 = sensor data
+    int   senderId;
+    char  command[32];
+    bool  relayStatus;
+    char  status_text[50];
+} struct_ack;
 
 struct SenderData {
     struct_message data;
@@ -66,20 +76,91 @@ unsigned long senderTimeoutInterval = 25000; // 25 seconds for stale data
 
 // --- ESP-NOW Callbacks ---
 void OnDataRecv(const esp_now_recv_info* recv_info, const uint8_t* incomingDataPtr, int len) {
-    struct_message tempIncomingData;
-    memcpy(&tempIncomingData, incomingDataPtr, sizeof(tempIncomingData));
+    // Check first byte to determine message type
+    if (len > 0) {
+        uint8_t msg_type = incomingDataPtr[0];
+        
+        if (msg_type == 1) {  // ACK message
+            if (len != sizeof(struct_ack)) {
+                Serial.printf("[ERROR] ACK packet size mismatch: got %d, expected %d\n", len, (int)sizeof(struct_ack));
+                return;
+            }
+            
+            struct_ack tempAck;
+            memcpy(&tempAck, incomingDataPtr, sizeof(tempAck));
+            
+            Serial.printf(
+                "[ACK] Relay Command Acknowledged from Sender %d\n"
+                "  - Command: %s\n"
+                "  - Status: %s\n"
+                "  - Relay: %s\n",
+                tempAck.senderId,
+                tempAck.command,
+                tempAck.status_text,
+                tempAck.relayStatus ? "ON" : "OFF"
+            );
+            
+            // Forward ACK to backend via HTTP
+            if (WiFi.status() == WL_CONNECTED) {
+                HTTPClient http;
+                String ackUrl = String(flaskServerUrl);
+                ackUrl.replace("gateway-data", "relay-ack");
+                
+                http.begin(ackUrl);
+                http.addHeader("Content-Type", "application/json");
+                
+                DynamicJsonDocument doc(256);
+                doc["senderId"] = tempAck.senderId;
+                doc["command"] = tempAck.command;
+                doc["relayStatus"] = tempAck.relayStatus;
+                doc["status_text"] = tempAck.status_text;
+                doc["timestamp"] = millis();
+                
+                String jsonString;
+                serializeJson(doc, jsonString);
+                
+                Serial.printf("[ACK POST] URL: %s\n", ackUrl.c_str());
+                Serial.printf("[ACK POST] JSON: %s\n", jsonString.c_str());
+                
+                int httpResponseCode = http.POST(jsonString);
+                Serial.printf("[ACK HTTP] Response code: %d\n", httpResponseCode);
+                
+                if (httpResponseCode != 200) {
+                    String response = http.getString();
+                    Serial.printf("[ACK ERROR] Response: %s\n", response.c_str());
+                }
+                http.end();
+            } else {
+                Serial.println("[ACK ERROR] WiFi disconnected");
+            }
+            return;
+        }
+        else if (msg_type == 0) {  // Sensor data
+            if (len != sizeof(struct_message)) {
+                Serial.printf("[ERROR] Sensor packet size mismatch: got %d, expected %d\n", len, (int)sizeof(struct_message));
+                return;
+            }
+            
+            struct_message tempIncomingData;
+            memcpy(&tempIncomingData, incomingDataPtr, sizeof(tempIncomingData));
 
-    incomingDataMap[tempIncomingData.senderId].data = tempIncomingData;
-    incomingDataMap[tempIncomingData.senderId].lastReceivedTimestamp = millis();
+            incomingDataMap[tempIncomingData.senderId].data = tempIncomingData;
+            incomingDataMap[tempIncomingData.senderId].lastReceivedTimestamp = millis();
 
-    Serial.printf(
-        "Data received from Sender ID %d | MAC: %02X:%02X:%02X:%02X:%02X:%02X\n"
-        "  - V: %.2f V, I: %.3f A, T: %.2f C\n",
-        tempIncomingData.senderId,
-        recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
-        recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5],
-        tempIncomingData.voltage, tempIncomingData.current, tempIncomingData.thermistorTemp
-    );
+            Serial.printf(
+                "Data received from Sender ID %d | MAC: %02X:%02X:%02X:%02X:%02X:%02X\n"
+                "  - V: %.2f V, I: %.3f A, T: %.2f C\n",
+                tempIncomingData.senderId,
+                recv_info->src_addr[0], recv_info->src_addr[1], recv_info->src_addr[2],
+                recv_info->src_addr[3], recv_info->src_addr[4], recv_info->src_addr[5],
+                tempIncomingData.voltage, tempIncomingData.current, tempIncomingData.thermistorTemp
+            );
+            return;
+        }
+        else {
+            Serial.printf("[ERROR] Unknown message type: %d (len: %d)\n", msg_type, len);
+        }
+    }
 }
 
 void OnDataSent(const esp_now_send_info_t* send_info, esp_now_send_status_t status) {

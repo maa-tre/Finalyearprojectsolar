@@ -1,0 +1,41 @@
+================================================================================
+BACKUPS FOR 8-FEATURE ML EXPANSION - CREATED: March 26, 2026
+================================================================================
+
+BRANCH: feature/8-feature-ml-expansion
+CREATED FROM: edit (latest commit)
+
+FILES BACKED UP (Original state):
+  1. ml/step1_generate_synthetic_data.py
+  2. ml/step2_train_random_forest.py
+  3. backend/main.py
+  4. model_info.txt
+
+WHAT THESE BACKUPS DO:
+  - Allow instant rollback if anything goes wrong
+  - Preserve original 5-feature ML model behavior
+  - Enable safe experimentation with 8-feature expansion
+
+HOW TO RESTORE FROM BACKUP:
+
+  Option A: Restore from folder
+    copy BACKUPS_8FEATURE_ML\*.bak ..\ml\
+    copy BACKUPS_8FEATURE_ML\main.py.bak ..\backend\main.py
+
+  Option B: Use Git rollback
+    git restore ml/step1_generate_synthetic_data.py
+    git restore ml/step2_train_random_forest.py
+    git restore backend/main.py
+
+  Option C: Use automated rollback script
+    ROLLBACK_8FEATURE_ML.bat  (Windows)
+    or
+    bash ROLLBACK_8FEATURE_ML.sh  (Linux/Mac)
+
+SAFETY NOTES:
+  ✓ All changes are on feature branch (not affecting main/edit)
+  ✓ Multiple rollback options available
+  ✓ Original state preserved in Git history
+  ✓ Can revert individual files or entire commit
+
+================================================================================
